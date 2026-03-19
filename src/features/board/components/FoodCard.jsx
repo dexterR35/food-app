@@ -54,7 +54,12 @@ export default function FoodCard({ item, onSelect, quantityInCart = 0 }) {
 
       {/* ── Body ──────────────────────────────────────── */}
       <div className="p-3.5">
-        <h3 className="text-food-text font-bold text-sm leading-snug line-clamp-1">{item.name}</h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-food-text font-bold text-sm leading-snug line-clamp-1">{item.name}</h3>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-food-text-m">
+            {(item.item_type ?? 'main') === 'menu' ? 'Menu' : 'Main'}
+          </span>
+        </div>
         {Array.isArray(item.menu_parts) && item.menu_parts.length > 0 && (
           <p className="text-food-text-m text-[11px] mt-0.5 line-clamp-1">
             {item.menu_parts.join(' + ')}

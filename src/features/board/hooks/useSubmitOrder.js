@@ -30,6 +30,7 @@ export function useSubmitOrder() {
           safePayload.items.map((i) => ({
             order_id: safePayload.existingOrderId,
             food_item_id: i.food_item_id,
+            item_name: i.item_name,
             quantity: i.quantity,
             unit_price: i.unit_price,
             unit_calories: i.unit_calories,
@@ -63,6 +64,7 @@ export function useSubmitOrder() {
         safePayload.items.map((i) => ({
           order_id: order.id,
           food_item_id: i.food_item_id,
+          item_name: i.item_name,
           quantity: i.quantity,
           unit_price: i.unit_price,
           unit_calories: i.unit_calories,

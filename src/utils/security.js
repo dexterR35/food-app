@@ -28,6 +28,7 @@ const orderItemSchema = z.object({
   quantity: z.number().int().min(1).max(50),
   unit_price: z.number().min(0).max(10000),
   unit_calories: z.number().int().min(0).max(10000),
+  item_name: z.string().max(120).optional(),
   note: z.string().max(300).optional(),
 })
 
@@ -51,6 +52,7 @@ export function sanitizeOrderPayload(payload) {
           quantity: Math.round(clampNumber(item?.quantity, { min: 1, max: 50, fallback: 1 })),
           unit_price: clampNumber(item?.unit_price, { min: 0, max: 10000, fallback: 0 }),
           unit_calories: Math.round(clampNumber(item?.unit_calories, { min: 0, max: 10000, fallback: 0 })),
+          item_name: sanitizeText(item?.item_name ?? item?.name ?? '', { maxLength: 120 }) || undefined,
           note: sanitizeText(item?.note ?? '', { maxLength: 300 }) || undefined,
         }))
       : [],

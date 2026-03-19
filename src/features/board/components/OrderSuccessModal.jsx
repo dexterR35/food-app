@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { CheckCircle, Flame, ShoppingBag, Clock } from 'lucide-react'
 import Modal from '../../../components/ui/Modal'
+import { orderItemDisplayName } from '../../../utils/orderDisplay'
 
 const JOKES = [
   "Your stomach called. It said 'FINALLY.' 🎉",
@@ -64,7 +65,7 @@ export default function OrderSuccessModal({ open, onClose, order, isUpdate }) {
                   {item.quantity}
                 </span>
                 <span className="text-food-text text-sm font-medium truncate">
-                  {item.food_items?.name ?? 'Item'}
+                  {orderItemDisplayName(item)}
                 </span>
               </div>
               <span className="text-food-text-s text-sm font-semibold shrink-0">

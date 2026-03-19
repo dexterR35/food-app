@@ -1,4 +1,5 @@
 import Badge from '../../../components/ui/Badge'
+import { orderItemDisplayName } from '../../../utils/orderDisplay'
 
 function formatBoardStatus(status) {
   if (status === 'open') return 'Open'
@@ -24,7 +25,7 @@ export const adminOrderColumns = [
       <div className="max-w-xs space-y-0.5">
         {row.original.order_items?.map((item, i) => (
           <div key={i} className="text-xs text-food-text-s">
-            {item.food_items?.name} <span className="text-food-text-m">×{item.quantity}</span>
+            {orderItemDisplayName(item)} <span className="text-food-text-m">×{item.quantity}</span>
           </div>
         ))}
       </div>
@@ -86,7 +87,7 @@ export const adminAllOrderColumns = [
       <div className="max-w-xs space-y-0.5">
         {row.original.order_items?.map((item, i) => (
           <div key={i} className="text-xs text-food-text-s">
-            {item.food_items?.name} <span className="text-food-text-m">×{item.quantity}</span>
+            {orderItemDisplayName(item)} <span className="text-food-text-m">×{item.quantity}</span>
           </div>
         ))}
       </div>
@@ -131,7 +132,7 @@ export const myOrderColumns = [
       <div className="space-y-0.5">
         {row.original.order_items?.map((item, i) => (
           <div key={i} className="text-xs text-food-text-s">
-            {item.food_items?.name} <span className="text-food-text-m">×{item.quantity}</span>
+            {orderItemDisplayName(item)} <span className="text-food-text-m">×{item.quantity}</span>
           </div>
         ))}
       </div>

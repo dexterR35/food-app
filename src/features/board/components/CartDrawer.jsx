@@ -1,6 +1,7 @@
 import { X, ShoppingCart, Flame, CheckCircle, Receipt } from 'lucide-react'
 import CartItem from './CartItem'
 import EmptyState from '../../../components/ui/EmptyState'
+import { cartLineKey } from '../hooks/useCart'
 
 export default function CartDrawer({ open, onClose, cart, onSubmit, submitting, existingOrder }) {
   return (
@@ -34,7 +35,7 @@ export default function CartDrawer({ open, onClose, cart, onSubmit, submitting, 
           {cart.isEmpty
             ? <EmptyState icon={ShoppingCart} title="Empty cart" description="Add items from the menu" />
             : cart.items.map(item => (
-                <CartItem key={item.food_item_id} item={item} onUpdateQty={cart.updateQty} onRemove={cart.remove} />
+                <CartItem key={cartLineKey(item)} item={item} onUpdateQty={cart.updateQty} onRemove={cart.remove} />
               ))
           }
         </div>

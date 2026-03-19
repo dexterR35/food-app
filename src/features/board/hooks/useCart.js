@@ -1,10 +1,16 @@
 import { useState } from 'react'
 
+/** Stable id for cart line: existing DB row, else catalog food id */
+export function cartLineKey(item) {
+  return item.lineId ?? item.food_item_id
+}
+
 export function useCart(existingOrderItems = []) {
   const [items, setItems] = useState(() =>
     existingOrderItems.map(i => ({
+      lineId: i.id,
       food_item_id: i.food_item_id,
-      name: i.food_items.name,
+      name: i.food_items?.name ?? i.item_name ?? 'Removed item',
       unit_price: i.unit_price,
       unit_calories: i.unit_calories,
       quantity: i.quantity,
@@ -16,14 +22,21 @@ export function useCart(existingOrderItems = []) {
     setItems(prev => {
       const existing = prev.find(i => i.food_item_id === foodItem.id)
       if (existing) return prev.map(i => i.food_item_id === foodItem.id ? { ...i, quantity: i.quantity + 1 } : i)
-      return [...prev, { food_item_id: foodItem.id, name: foodItem.name, unit_price: foodItem.price, unit_calories: foodItem.calories, quantity: 1, note: '' }]
+      return [...prev, {
+        food_item_id: foodItem.id,
+        name: foodItem.name,
+        unit_price: foodItem.price,
+        unit_calories: foodItem.calories,
+        quantity: 1,
+        note: '',
+      }]
     })
 
-  const remove = (foodItemId) => setItems(prev => prev.filter(i => i.food_item_id !== foodItemId))
+  const remove = (lineKey) => setItems(prev => prev.filter(i => cartLineKey(i) !== lineKey))
 
-  const updateQty = (foodItemId, qty) => {
-    if (qty <= 0) return remove(foodItemId)
-    setItems(prev => prev.map(i => i.food_item_id === foodItemId ? { ...i, quantity: qty } : i))
+  const updateQty = (lineKey, qty) => {
+    if (qty <= 0) return remove(lineKey)
+    setItems(prev => prev.map(i => (cartLineKey(i) === lineKey ? { ...i, quantity: qty } : i)))
   }
 
   const totalPrice = items.reduce((s, i) => s + i.unit_price * i.quantity, 0)

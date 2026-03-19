@@ -1,16 +1,18 @@
 import { Trash2, Minus, Plus, Flame } from 'lucide-react'
 import { useDebouncedAction } from '../../../hooks/useDebouncedAction'
+import { cartLineKey } from '../hooks/useCart'
 
 export default function CartItem({ item, onUpdateQty, onRemove }) {
+  const lineKey = cartLineKey(item)
   const handleDecrease = useDebouncedAction(
-    () => onUpdateQty(item.food_item_id, item.quantity - 1),
+    () => onUpdateQty(lineKey, item.quantity - 1),
     180
   )
   const handleIncrease = useDebouncedAction(
-    () => onUpdateQty(item.food_item_id, item.quantity + 1),
+    () => onUpdateQty(lineKey, item.quantity + 1),
     180
   )
-  const handleRemove = useDebouncedAction(() => onRemove(item.food_item_id), 180)
+  const handleRemove = useDebouncedAction(() => onRemove(lineKey), 180)
 
   return (
     <div className="flex items-center gap-3 bg-food-elevated rounded-xl p-3 border border-food-border">

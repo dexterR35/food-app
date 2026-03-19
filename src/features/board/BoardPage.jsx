@@ -46,7 +46,9 @@ export default function BoardPage() {
     return foodItems.filter(i => i.category === activeCategory)
   }, [foodItems, activeCategory])
   const cartQtyById = useMemo(
-    () => Object.fromEntries(cart.items.map(i => [i.food_item_id, i.quantity])),
+    () => Object.fromEntries(
+      cart.items.filter((i) => i.food_item_id).map((i) => [i.food_item_id, i.quantity])
+    ),
     [cart.items]
   )
 
@@ -112,11 +114,12 @@ export default function BoardPage() {
         </div>
       ) : (
         <>
-          {/* Category tabs */}
+          {/* Category only: individual (Main) and menu (3 pcs) items both live in their category */}
           <div className="flex items-center gap-1.5 px-6 py-3 bg-food-card border-b border-food-border overflow-x-auto">
-            {categories.map(cat => (
+            {categories.map((cat) => (
               <button
                 key={cat}
+                type="button"
                 onClick={() => setActiveCategory(cat)}
                 className={`inline-flex items-center px-3.5 h-8 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                   activeCategory === cat

@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import { sanitizeText, clampNumber } from '../../../utils/security'
 
 function sanitizeFoodItemInput(item) {
+  const itemType = item?.item_type === 'menu' ? 'menu' : 'main'
   const menuParts = Array.isArray(item?.menu_parts)
     ? item.menu_parts
         .map((part) => sanitizeText(part ?? '', { maxLength: 80 }))
@@ -11,8 +12,8 @@ function sanitizeFoodItemInput(item) {
         .slice(0, 3)
     : []
 
+  // Explicit columns only — do not spread `item` (avoids stray keys & matches DB)
   return {
-    ...item,
     name: sanitizeText(item?.name, { maxLength: 120 }),
     description: sanitizeText(item?.description ?? '', { maxLength: 500 }) || null,
     category: sanitizeText(item?.category, { maxLength: 40 }),
@@ -22,7 +23,9 @@ function sanitizeFoodItemInput(item) {
     protein_g: clampNumber(item?.protein_g, { min: 0, max: 1000, fallback: 0 }),
     carbs_g: clampNumber(item?.carbs_g, { min: 0, max: 1000, fallback: 0 }),
     fat_g: clampNumber(item?.fat_g, { min: 0, max: 1000, fallback: 0 }),
-    menu_parts: menuParts.length ? menuParts : null,
+    is_active: item?.is_active !== false,
+    item_type: itemType,
+    menu_parts: itemType === 'menu' ? menuParts : null,
   }
 }
 
@@ -43,8 +46,7 @@ export function useSaveFoodItem() {
     mutationFn: async (item) => {
       const safeItem = sanitizeFoodItemInput(item)
       if (item.id) {
-        const { id, ...rest } = safeItem
-        const { error } = await supabase.from('food_items').update(rest).eq('id', id)
+        const { error } = await supabase.from('food_items').update(safeItem).eq('id', item.id)
         if (error) throw error
       } else {
         const { error } = await supabase.from('food_items').insert(safeItem)
@@ -72,5 +74,20 @@ export function useToggleFoodItem() {
       toast.success(is_active ? 'Item activated.' : 'Item deactivated.')
     },
     onError: (e) => toast.error(`Failed: ${e.message}`),
+  })
+}
+
+export function useDeleteFoodItem() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id) => {
+      const { error } = await supabase.from('food_items').delete().eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['food-items'] })
+      toast.success('Food item deleted.')
+    },
+    onError: (e) => toast.error(`Delete failed: ${e.message || e}`),
   })
 }

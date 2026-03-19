@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Button from '../../../components/ui/Button'
@@ -38,6 +38,7 @@ const schema = z.object({
     z.string().min(1, 'Category is required.').max(40)
   ),
   image_url: z.string().trim().url().optional().or(z.literal('')),
+  item_type: z.enum(['main', 'menu']).default('main'),
   menu_parts: z.array(
     z.preprocess(
       (value) => sanitizeText(value ?? '', { maxLength: 80 }),
@@ -45,19 +46,32 @@ const schema = z.object({
     )
   ).max(3).optional(),
   is_active: z.boolean().default(true),
+}).superRefine((values, ctx) => {
+  if (values.item_type === 'menu') {
+    const count = (values.menu_parts ?? []).filter(Boolean).length
+    if (count !== 3) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['menu_parts'],
+        message: 'Menu type must have exactly 3 pieces.',
+      })
+    }
+  }
 })
 
 const categories = ['Main', 'Salad', 'Soup', 'Side', 'Drink', 'Dessert']
 const inputCls = "w-full bg-food-elevated border border-food-border rounded-lg px-3 py-2 text-food-text text-sm placeholder:text-food-text-m outline-none focus:border-food-accent transition-colors"
 
 export default function FoodForm({ item, onSave, onCancel, saving }) {
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, control, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       ...(item ?? { is_active: true }),
+      item_type: item?.item_type ?? 'main',
       menu_parts: item?.menu_parts?.length ? item.menu_parts : ['', '', ''],
     },
   })
+  const itemType = useWatch({ name: 'item_type', control }) ?? 'main'
   return (
     <form onSubmit={handleSubmit(onSave)} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -69,14 +83,24 @@ export default function FoodForm({ item, onSave, onCancel, saving }) {
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
+        <div>
+          <label className="text-food-text-m text-xs mb-1 block">Type *</label>
+          <select {...register('item_type')} className={inputCls}>
+            <option value="main">Main (individual pick)</option>
+            <option value="menu">Menu (3 pieces)</option>
+          </select>
+        </div>
         <div><input {...register('image_url')} placeholder="Image URL" className={inputCls} /></div>
         <div className="col-span-2">
-          <label className="text-food-text-m text-xs mb-1 block">Menu option (up to 3 pieces)</label>
+          <label className="text-food-text-m text-xs mb-1 block">Menu option pieces</label>
           <div className="grid grid-cols-3 gap-2">
             <input {...register('menu_parts.0')} placeholder="Piece 1 (e.g. potatoes)" className={inputCls} />
             <input {...register('menu_parts.1')} placeholder="Piece 2 (e.g. beef)" className={inputCls} />
             <input {...register('menu_parts.2')} placeholder="Piece 3 (e.g. salad)" className={inputCls} />
           </div>
+          {itemType === 'menu' && (
+            <p className="text-food-text-m text-[11px] mt-1">Menu items require exactly 3 pieces.</p>
+          )}
         </div>
         <div><input {...register('price')} type="number" step="0.01" placeholder="Price (RON) *" className={inputCls} /></div>
         <div><input {...register('calories')} type="number" placeholder="Calories *" className={inputCls} /></div>

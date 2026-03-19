@@ -1,3 +1,5 @@
+import { orderItemDisplayName } from './orderDisplay'
+
 export function buildCsvRows(orders, date) {
   const rows = []
   for (const order of orders) {
@@ -6,7 +8,7 @@ export function buildCsvRows(orders, date) {
         date,
         username: order.users.username,
         department: order.users.department,
-        food_item: item.food_items.name,
+        food_item: orderItemDisplayName(item),
         quantity: item.quantity,
         unit_price: item.unit_price,
         unit_calories: item.unit_calories,
