@@ -49,6 +49,31 @@ export function useCloseBoard() {
   })
 }
 
+export function useReopenBoard() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (boardId) => {
+      const { error } = await supabase.from('boards').update({ status: 'open' }).eq('id', boardId)
+      if (error) throw error
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['board'] }),
+  })
+}
+
+export function useAllBoards() {
+  return useQuery({
+    queryKey: ['boards', 'all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('boards')
+        .select('id, date, title, status')
+        .order('date', { ascending: false })
+      if (error) throw error
+      return data
+    },
+  })
+}
+
 export function useFoodItems() {
   return useQuery({
     queryKey: ['food-items', 'active'],

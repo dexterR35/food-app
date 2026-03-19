@@ -1,116 +1,125 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-:root {
-  /* Surfaces */
-  --food-bg:          #f8fafc;
-  --food-card:        #ffffff;
-  --food-elevated:    #f1f5f9;
-  --food-overlay:     rgba(0, 0, 0, 0.04);
+/* ─── Tailwind v4 theme registration ─────────────────────────────────────────
+   @theme defines CSS custom properties on :root AND tells Tailwind to generate
+   utility classes (bg-food-*, text-food-*, border-food-*, shadow-*, etc.).
+   [data-theme='dark'] below overrides the same property names at runtime.
+   ─────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Surfaces — light */
+  --color-food-bg:        #f0fdf4;
+  --color-food-card:      #ffffff;
+  --color-food-elevated:  #dcfce7;
+  --color-food-overlay:   rgba(0, 0, 0, 0.04);
 
-  /* Borders — purple-tinted */
-  --food-border:      #ddd6fe;
-  --food-border-h:    #a78bfa;
+  /* Borders — green-tinted */
+  --color-food-border:    #bbf7d0;
+  --color-food-border-h:  #4ade80;
 
-  /* Accent: Indigo */
-  --food-accent:      #4f46e5;
-  --food-accent-h:    #4338ca;
-  --food-accent-d:    #ede9fe;
-  --food-accent-glow: rgba(79, 70, 229, 0.12);
+  /* Accent: Green — matches logo */
+  --color-food-accent:    #16a34a;
+  --color-food-accent-h:  #15803d;
+  --color-food-accent-d:  #dcfce7;
 
-  /* Crimson */
-  --food-crimson:     #dc2626;
-  --food-crimson-h:   #b91c1c;
-  --food-crimson-d:   #fee2e2;
+  /* Crimson — vivid */
+  --color-food-crimson:   #e11d48;
+  --color-food-crimson-h: #be123c;
+  --color-food-crimson-d: #ffe4e6;
 
-  /* Green */
-  --food-green:       #16a34a;
-  --food-green-h:     #15803d;
-  --food-green-d:     #dcfce7;
+  /* Green (semantic — success badges, same family as accent) */
+  --color-food-green:     #16a34a;
+  --color-food-green-h:   #15803d;
+  --color-food-green-d:   #dcfce7;
 
   /* Text */
-  --food-text:        #0f172a;
-  --food-text-s:      #475569;
-  --food-text-m:      #94a3b8;
-  --food-text-inv:    #ffffff;
-
-  /* Status badges */
-  --s-open-bg:        #ede9fe; --s-open-tx:        #4338ca;
-  --s-closed-bg:      #f1f5f9; --s-closed-tx:      #475569;
-  --s-pending-bg:     #fffbeb; --s-pending-tx:     #b45309;
-  --s-approved-bg:    #dcfce7; --s-approved-tx:    #15803d;
-  --s-rejected-bg:    #fee2e2; --s-rejected-tx:    #b91c1c;
-  --s-confirmed-bg:   #eff6ff; --s-confirmed-tx:   #1d4ed8;
-  --s-cancelled-bg:   #f3f4f6; --s-cancelled-tx:   #6b7280;
-  --s-admin-bg:       #f5f3ff; --s-admin-tx:       #6d28d9;
-  --s-user-bg:        #f1f5f9; --s-user-tx:        #475569;
-
-  /* Typography */
-  --font-sans: 'Inter', sans-serif;
-
-  /* Border radius */
-  --r-sm:   6px;
-  --r-md:   10px;
-  --r-lg:   14px;
-  --r-xl:   20px;
-  --r-full: 9999px;
+  --color-food-text:      #052e16;
+  --color-food-text-s:    #166534;
+  --color-food-text-m:    #4ade80;
+  --color-food-text-inv:  #ffffff;
 
   /* Shadows */
-  --shadow-card: 0 1px 3px rgba(0,0,0,.06), 0 0 0 1px var(--food-border);
-  --shadow-lg:   0 8px 32px rgba(0,0,0,.08), 0 0 0 1px var(--food-border);
-  --shadow-glow: 0 0 20px var(--food-accent-glow);
+  --shadow-card: 0 2px 8px rgba(0,0,0,.06), 0 0 0 1px #bbf7d0;
+  --shadow-lg:   0 12px 40px rgba(0,0,0,.10), 0 0 0 1px #bbf7d0;
+  --shadow-glow: 0 0 28px rgba(22, 163, 74, 0.35);
+
+  /* Border radius */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-full: 9999px;
+
+  /* Font */
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+/* ─── Dark mode overrides ─────────────────────────────────────────────────── */
+[data-theme='dark'] {
+  --color-food-bg:        #030d06;
+  --color-food-card:      #071209;
+  --color-food-elevated:  #0d1f10;
+  --color-food-overlay:   rgba(255, 255, 255, 0.03);
+
+  --color-food-border:    #14532d;
+  --color-food-border-h:  #16a34a;
+
+  --color-food-accent:    #22c55e;
+  --color-food-accent-h:  #16a34a;
+  --color-food-accent-d:  #052e16;
+
+  --color-food-crimson:   #fb2c36;
+  --color-food-crimson-h: #e11d48;
+  --color-food-crimson-d: #4c0519;
+
+  --color-food-green:     #22c55e;
+  --color-food-green-h:   #16a34a;
+  --color-food-green-d:   #052e16;
+
+  --color-food-text:      #f0fdf4;
+  --color-food-text-s:    #bbf7d0;
+  --color-food-text-m:    #4ade80;
+  --color-food-text-inv:  #ffffff;
+
+  --shadow-card: 0 2px 8px rgba(0,0,0,.5),  0 0 0 1px #14532d;
+  --shadow-lg:   0 12px 40px rgba(0,0,0,.6), 0 0 0 1px #14532d;
+  --shadow-glow: 0 0 32px rgba(34, 197, 94, 0.50);
+}
+
+/* ─── Status badge CSS vars (used via inline styles in Badge.jsx) ─────────── */
+:root {
+  --s-open-bg:      #dcfce7; --s-open-tx:      #15803d;
+  --s-closed-bg:    #f1f5f9; --s-closed-tx:    #475569;
+  --s-pending-bg:   #fffbeb; --s-pending-tx:   #b45309;
+  --s-approved-bg:  #dcfce7; --s-approved-tx:  #15803d;
+  --s-rejected-bg:  #ffe4e6; --s-rejected-tx:  #be123c;
+  --s-confirmed-bg: #eff6ff; --s-confirmed-tx: #1d4ed8;
+  --s-cancelled-bg: #f3f4f6; --s-cancelled-tx: #6b7280;
+  --s-admin-bg:     #f0fdf4; --s-admin-tx:     #15803d;
+  --s-user-bg:      #f1f5f9; --s-user-tx:      #475569;
 }
 
 [data-theme='dark'] {
-  --food-bg:          #0b0614;
-  --food-card:        #120a1f;
-  --food-elevated:    #1b1030;
-  --food-overlay:     rgba(255, 255, 255, 0.03);
-
-  --food-border:      #2b1a45;
-  --food-border-h:    #7c3aed;
-
-  --food-accent:      #6366f1;
-  --food-accent-h:    #4f46e5;
-  --food-accent-d:    #1e1345;
-  --food-accent-glow: rgba(99, 102, 241, 0.25);
-
-  --food-crimson:     #ef4444;
-  --food-crimson-h:   #dc2626;
-  --food-crimson-d:   #450a0a;
-
-  --food-green:       #22c55e;
-  --food-green-h:     #16a34a;
-  --food-green-d:     #052e16;
-
-  --food-text:        #eef2ff;
-  --food-text-s:      #c7d2fe;
-  --food-text-m:      #818cf8;
-  --food-text-inv:    #ffffff;
-
-  --s-open-bg:        #312e81; --s-open-tx:        #c7d2fe;
-  --s-closed-bg:      #1e293b; --s-closed-tx:      #94a3b8;
-  --s-pending-bg:     #451a03; --s-pending-tx:     #fbbf24;
-  --s-approved-bg:    #052e16; --s-approved-tx:    #4ade80;
-  --s-rejected-bg:    #450a0a; --s-rejected-tx:    #fca5a5;
-  --s-confirmed-bg:   #1e3a8a; --s-confirmed-tx:   #93c5fd;
-  --s-cancelled-bg:   #111827; --s-cancelled-tx:   #9ca3af;
-  --s-admin-bg:       #3b1a5a; --s-admin-tx:       #d8b4fe;
-  --s-user-bg:        #1f2937; --s-user-tx:        #94a3b8;
-
-  --shadow-card: 0 1px 3px rgba(0,0,0,.4),  0 0 0 1px var(--food-border);
-  --shadow-lg:   0 8px 32px rgba(0,0,0,.5), 0 0 0 1px var(--food-border);
-  --shadow-glow: 0 0 20px var(--food-accent-glow);
+  --s-open-bg:      #052e16; --s-open-tx:      #4ade80;
+  --s-closed-bg:    #1e293b; --s-closed-tx:    #94a3b8;
+  --s-pending-bg:   #451a03; --s-pending-tx:   #fbbf24;
+  --s-approved-bg:  #052e16; --s-approved-tx:  #4ade80;
+  --s-rejected-bg:  #4c0519; --s-rejected-tx:  #fda4af;
+  --s-confirmed-bg: #1e3a8a; --s-confirmed-tx: #93c5fd;
+  --s-cancelled-bg: #111827; --s-cancelled-tx: #9ca3af;
+  --s-admin-bg:     #052e16; --s-admin-tx:     #86efac;
+  --s-user-bg:      #1f2937; --s-user-tx:      #94a3b8;
 }
 
+/* ─── Base styles ─────────────────────────────────────────────────────────── */
 @layer base {
   body {
-    background-color: var(--food-bg);
-    color: var(--food-text);
+    background-color: var(--color-food-bg);
+    color: var(--color-food-text);
     font-family: var(--font-sans);
   }
-  * { border-color: var(--food-border); }
+  * { border-color: var(--color-food-border); }
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background-color: var(--food-bg); }
-  ::-webkit-scrollbar-thumb { background-color: var(--food-border); border-radius: 9999px; }
+  ::-webkit-scrollbar-track { background-color: var(--color-food-bg); }
+  ::-webkit-scrollbar-thumb { background-color: var(--color-food-border); border-radius: 9999px; }
 }

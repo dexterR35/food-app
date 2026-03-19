@@ -24,7 +24,7 @@ export function useSubmitOrder() {
       }
       // New order
       const { data: order, error: ordErr } = await supabase.from('orders')
-        .insert({ board_id: boardId, user_id: profile.id, total_price: totalPrice, total_calories: totalCalories, submitted_at: new Date().toISOString() })
+        .insert({ board_id: boardId, user_id: profile.id, status: 'confirmed', total_price: totalPrice, total_calories: totalCalories, submitted_at: new Date().toISOString() })
         .select().single()
       if (ordErr) throw ordErr
       const { error: itemsErr } = await supabase.from('order_items').insert(

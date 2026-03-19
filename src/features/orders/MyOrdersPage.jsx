@@ -5,7 +5,7 @@ import DataTable from '../../components/ui/DataTable'
 export default function MyOrdersPage() {
   const { data: orders = [], isLoading } = useMyOrders()
 
-  const totalSpend = orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + Number(o.total_price), 0)
+  const totalSpend = orders.reduce((s, o) => s + Number(o.total_price), 0)
 
   return (
     <div className="space-y-6">

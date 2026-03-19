@@ -140,12 +140,15 @@ export default function BoardPage() {
             <div className="fixed bottom-6 right-6 z-20">
               <button
                 onClick={() => setCartOpen(true)}
-                className="flex items-center gap-3 px-5 h-12 rounded-full bg-food-accent hover:bg-food-accent-h text-food-text-inv font-semibold text-sm shadow-glow transition-colors"
+                className="flex items-center gap-3 px-5 h-13 rounded-full bg-food-accent hover:bg-food-accent-h text-food-text-inv font-bold text-sm shadow-glow transition-all duration-150 hover:scale-105 active:scale-95"
               >
                 <ShoppingCart className="w-4 h-4" />
-                <span>{cart.items.length} item{cart.items.length !== 1 ? 's' : ''}</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-extrabold">{cart.items.length}</span>
+                  item{cart.items.length !== 1 ? 's' : ''}
+                </span>
                 <span className="h-4 w-px bg-white/30" />
-                <span>{cart.totalPrice.toFixed(2)} RON</span>
+                <span className="font-extrabold">{cart.totalPrice.toFixed(2)} <span className="font-semibold opacity-80 text-xs">RON</span></span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>

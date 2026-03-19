@@ -11,7 +11,6 @@ import RejectedPage from '../pages/RejectedPage'
 import DashboardPage from '../features/dashboard/DashboardPage'
 import BoardPage from '../features/board/BoardPage'
 import MyOrdersPage from '../features/orders/MyOrdersPage'
-import AdminOrdersPage from '../features/orders/AdminOrdersPage'
 import FoodCatalogPage from '../features/food/FoodCatalogPage'
 import AdminUsersPage from '../features/users/AdminUsersPage'
 import ProfilePage from '../features/users/ProfilePage'
@@ -51,7 +50,6 @@ export default function AppRouter() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/board" element={<BoardPage />} />
           <Route path="/my-orders" element={<MyOrdersPage />} />
-          <Route path="/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
           <Route path="/food" element={<AdminRoute><FoodCatalogPage /></AdminRoute>} />
           <Route path="/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
           <Route path="/profile" element={<ProfilePage />} />

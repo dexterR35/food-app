@@ -1,5 +1,3 @@
-import Badge from '../../../components/ui/Badge'
-
 export const adminOrderColumns = [
   {
     header: 'User',
@@ -33,11 +31,6 @@ export const adminOrderColumns = [
     header: 'Calories',
     accessorKey: 'total_calories',
     cell: ({ getValue }) => <span className="text-food-text-s">{getValue()} kcal</span>
-  },
-  {
-    header: 'Status',
-    accessorKey: 'status',
-    cell: ({ getValue }) => <Badge variant={getValue()}>{getValue()}</Badge>
   },
   {
     header: 'Submitted',
@@ -75,10 +68,5 @@ export const myOrderColumns = [
     header: 'Calories',
     accessorKey: 'total_calories',
     cell: ({ getValue }) => <span className="text-food-text-s">{getValue()} kcal</span>
-  },
-  {
-    header: 'Status',
-    accessorKey: 'status',
-    cell: ({ getValue }) => <Badge variant={getValue()}>{getValue()}</Badge>
   },
 ]

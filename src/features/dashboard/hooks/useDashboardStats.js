@@ -19,7 +19,6 @@ export function useDashboardStats(boardId) {
         totalOrders: data.length,
         totalRevenue: data.reduce((s, o) => s + Number(o.total_price), 0),
         totalCalories: data.reduce((s, o) => s + o.total_calories, 0),
-        pendingOrders: data.filter(o => o.status === 'pending').length,
       }
     },
   })
