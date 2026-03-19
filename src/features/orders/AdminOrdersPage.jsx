@@ -8,11 +8,19 @@ import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import { downloadCsv } from '../../utils/exportCsv'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { useRealtime } from '../../hooks/useRealtime'
 
 export default function AdminOrdersPage() {
   const [filter, setFilter] = useState('')
   const { data: board, isLoading: boardLoading } = useBoard()
   const { data: orders = [], isLoading } = useAdminOrders(board?.id)
+
+  useRealtime({
+    channel: `admin-orders-${board?.id}`,
+    table: 'orders',
+    filter: board?.id ? `board_id=eq.${board.id}` : null,
+    queryKeys: [['orders', board?.id], ['dashboard-stats']],
+  })
 
   if (boardLoading || isLoading) return <LoadingSpinner />
 

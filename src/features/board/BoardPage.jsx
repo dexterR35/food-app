@@ -4,6 +4,7 @@ import { useBoard, useCreateBoard, useCloseBoard, useFoodItems } from './hooks/u
 import { useMyOrder, useSubmitOrder } from './hooks/useSubmitOrder'
 import { useCart } from './hooks/useCart'
 import { useAuth } from '../../context/AuthContext'
+import { useRealtime } from '../../hooks/useRealtime'
 import FoodGrid from './components/FoodGrid'
 import CartDrawer from './components/CartDrawer'
 import Badge from '../../components/ui/Badge'
@@ -21,6 +22,13 @@ export default function BoardPage() {
   const submitOrder = useSubmitOrder()
   const createBoard = useCreateBoard()
   const closeBoard = useCloseBoard()
+
+  useRealtime({
+    channel: `board-status-${board?.id}`,
+    table: 'boards',
+    filter: board?.id ? `id=eq.${board.id}` : null,
+    queryKeys: [['board', 'today']],
+  })
 
   async function handleSubmit() {
     if (cart.isEmpty) return
