@@ -4,7 +4,6 @@ const labelForPath = (pathname) => {
   if (pathname === '/') return 'Dashboard'
   if (pathname === '/board') return "Today's Board"
   if (pathname === '/my-orders') return 'My Orders'
-  if (pathname === '/orders') return 'All Orders'
   if (pathname === '/food') return 'Food Catalog'
   if (pathname === '/users') return 'Users'
   if (pathname === '/profile') return 'Profile'
