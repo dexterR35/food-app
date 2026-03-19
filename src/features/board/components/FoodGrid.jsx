@@ -2,7 +2,7 @@ import FoodCard from './FoodCard'
 import EmptyState from '../../../components/ui/EmptyState'
 import { UtensilsCrossed } from 'lucide-react'
 
-export default function FoodGrid({ items, onAdd, cartItemIds }) {
+export default function FoodGrid({ items, onSelect, cartQtyById }) {
   if (!items.length) return (
     <EmptyState
       icon={UtensilsCrossed}
@@ -17,8 +17,8 @@ export default function FoodGrid({ items, onAdd, cartItemIds }) {
         <FoodCard
           key={item.id}
           item={item}
-          onAdd={onAdd}
-          inCart={cartItemIds.includes(item.id)}
+          onSelect={onSelect}
+          quantityInCart={cartQtyById[item.id] ?? 0}
         />
       ))}
     </div>

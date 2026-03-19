@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, CalendarDays, ShoppingBag,
   UtensilsCrossed, Users, UserCircle, ClipboardList,
-  Utensils, LogOut, Scale,
+  Utensils, LogOut, Scale, Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { cn } from '../../utils/cn'
@@ -12,6 +12,7 @@ const userLinks = [
   { to: '/board',     icon: CalendarDays,    label: "Today's Board" },
   { to: '/my-orders', icon: ShoppingBag,     label: 'My Orders'     },
   { to: '/body',      icon: Scale,           label: 'Body Calc'     },
+  { to: '/ai',        icon: Sparkles,        label: 'AI Coach'      },
 ]
 const adminLinks = [
   { to: '/orders', icon: ClipboardList,   label: 'All Orders'   },
@@ -56,19 +57,19 @@ export default function Sidebar() {
   const { isAdmin, profile, signOut } = useAuth()
 
   return (
-    <aside className="w-64 bg-food-card border-r border-food-border min-h-screen flex flex-col shrink-0">
+    <aside className="w-64 bg-food-card border-r border-food-border h-screen flex flex-col shrink-0 sticky top-0">
       {/* Logo */}
       <div className="h-14 flex items-center px-5 border-b border-food-border shrink-0">
         <div className="flex items-center gap-2.5 select-none">
           <div className="relative">
-            <div className="w-8 h-8 bg-food-green rounded-lg flex items-center justify-center">
-              <Utensils className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 bg-food-card border border-food-border rounded-lg flex items-center justify-center">
+              <Utensils className="w-4 h-4 text-food-text" />
             </div>
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-food-crimson ring-2 ring-food-card" />
           </div>
           <div className="leading-none">
             <span className="text-lg font-black text-food-text">Food</span>
-            <span className="text-lg font-black text-food-green">App</span>
+            <span className="text-lg font-black text-food-text">App</span>
           </div>
         </div>
       </div>

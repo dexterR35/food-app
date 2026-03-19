@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
-import { Lock, CalendarDays, ShoppingCart, ChevronRight, Unlock } from 'lucide-react'
-import { useBoard, useCreateBoard, useCloseBoard, useReopenBoard, useFoodItems } from './hooks/useBoard'
+import { Lock, CalendarDays, ShoppingCart, ChevronRight } from 'lucide-react'
+import { useBoard, useCreateBoard, useFoodItems } from './hooks/useBoard'
 import { useMyOrder, useSubmitOrder } from './hooks/useSubmitOrder'
 import { useCart } from './hooks/useCart'
 import { useAuth } from '../../context/AuthContext'
@@ -10,14 +10,17 @@ import CartDrawer from './components/CartDrawer'
 import OrderSuccessModal from './components/OrderSuccessModal'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
+import Modal from '../../components/ui/Modal'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import EmptyState from '../../components/ui/EmptyState'
+import { useDebouncedAction } from '../../hooks/useDebouncedAction'
 
 export default function BoardPage() {
   const { isAdmin } = useAuth()
   const [cartOpen, setCartOpen] = useState(false)
   const [successOpen, setSuccessOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('All')
+  const [selectedFood, setSelectedFood] = useState(null)
 
   const { data: board, isLoading: boardLoading } = useBoard()
   const { data: foodItems = [], isLoading: foodLoading } = useFoodItems()
@@ -25,8 +28,6 @@ export default function BoardPage() {
   const cart = useCart(existingOrder?.order_items ?? [])
   const submitOrder = useSubmitOrder()
   const createBoard = useCreateBoard()
-  const closeBoard = useCloseBoard()
-  const reopenBoard = useReopenBoard()
 
   useRealtime({
     channel: `board-status-${board?.id}`,
@@ -44,9 +45,13 @@ export default function BoardPage() {
     if (activeCategory === 'All') return foodItems
     return foodItems.filter(i => i.category === activeCategory)
   }, [foodItems, activeCategory])
+  const cartQtyById = useMemo(
+    () => Object.fromEntries(cart.items.map(i => [i.food_item_id, i.quantity])),
+    [cart.items]
+  )
 
   async function handleSubmit() {
-    if (cart.isEmpty) return
+    if (cart.isEmpty || submitOrder.isPending || !board?.id || board.status === 'closed') return
     await submitOrder.mutateAsync({
       boardId: board.id,
       items: cart.items,
@@ -58,6 +63,14 @@ export default function BoardPage() {
     setSuccessOpen(true)
   }
 
+  const handleSubmitDebounced = useDebouncedAction(handleSubmit, 700)
+  const handleCreateBoardDebounced = useDebouncedAction(() => createBoard.mutate(), 700)
+  const handleConfirmAddDebounced = useDebouncedAction(() => {
+    if (!selectedFood) return
+    cart.add(selectedFood)
+    setSelectedFood(null)
+  }, 350)
+
   if (boardLoading || foodLoading) return <LoadingSpinner />
 
   if (!board) return (
@@ -68,7 +81,7 @@ export default function BoardPage() {
         title="No board today"
         description={isAdmin ? "Create today's board to open ordering." : "Admin hasn't created today's board yet."}
         action={isAdmin && (
-          <Button onClick={() => createBoard.mutate()} disabled={createBoard.isPending}>
+          <Button onClick={handleCreateBoardDebounced} disabled={createBoard.isPending}>
             {createBoard.isPending ? 'Creating…' : "Create Today's Board"}
           </Button>
         )}
@@ -86,20 +99,7 @@ export default function BoardPage() {
           <h1 className="text-xl font-bold text-food-text">{board.title}</h1>
           <Badge variant={board.status}>{isClosed ? 'Closed' : 'Open'}</Badge>
         </div>
-        <div className="flex items-center gap-2">
-          {isAdmin && !isClosed && (
-            <Button variant="danger" size="sm" onClick={() => closeBoard.mutate(board.id)} disabled={closeBoard.isPending}>
-              <Lock className="w-3.5 h-3.5" />
-              {closeBoard.isPending ? 'Closing…' : 'Close Board'}
-            </Button>
-          )}
-          {isAdmin && isClosed && (
-            <Button size="sm" onClick={() => reopenBoard.mutate(board.id)} disabled={reopenBoard.isPending}>
-              <Unlock className="w-3.5 h-3.5" />
-              {reopenBoard.isPending ? 'Reopening…' : 'Reopen Board'}
-            </Button>
-          )}
-        </div>
+        <div />
       </div>
 
       {isClosed ? (
@@ -133,8 +133,8 @@ export default function BoardPage() {
           <div className="p-6 pb-24">
             <FoodGrid
               items={filteredItems}
-              onAdd={cart.add}
-              cartItemIds={cart.items.map(i => i.food_item_id)}
+              onSelect={setSelectedFood}
+              cartQtyById={cartQtyById}
             />
           </div>
 
@@ -163,10 +163,34 @@ export default function BoardPage() {
         open={cartOpen}
         onClose={() => setCartOpen(false)}
         cart={cart}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmitDebounced}
         submitting={submitOrder.isPending}
         existingOrder={existingOrder}
       />
+
+      <Modal
+        open={!!selectedFood}
+        onClose={() => setSelectedFood(null)}
+        title="Add item to cart?"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <p className="text-food-text font-semibold">{selectedFood?.name}</p>
+            <p className="text-food-text-m text-sm">
+              {selectedFood?.price?.toFixed?.(2) ?? '0.00'} RON · {selectedFood?.calories ?? 0} kcal
+            </p>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="secondary" onClick={() => setSelectedFood(null)}>
+              Not now
+            </Button>
+            <Button onClick={handleConfirmAddDebounced}>
+              Add to cart
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       <OrderSuccessModal
         open={successOpen}

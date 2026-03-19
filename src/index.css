@@ -46,10 +46,10 @@
   --shadow-glow: 0 0 24px color-mix(in srgb, var(--color-food-accent) 30%, transparent);
 
   /* Border radius */
-  --radius-sm:   6px;
+  --radius-sm:   10px;
   --radius-md:   10px;
-  --radius-lg:   14px;
-  --radius-xl:   20px;
+  --radius-lg:   10px;
+  --radius-xl:   10px;
   --radius-full: 9999px;
 
   /* Font */
@@ -91,14 +91,14 @@
   --shadow-glow: 0 0 28px color-mix(in srgb, var(--color-food-accent) 45%, transparent);
 }
 
-/* ─── Status badge vars — open/admin follow accent, rest are semantic ─────── */
+/* ─── Status badge vars — semantic and reusable across app ────────────────── */
 :root {
-  --s-open-bg:      color-mix(in srgb, var(--color-food-accent) 10%, white);
-  --s-open-tx:      color-mix(in srgb, var(--color-food-accent) 75%, black);
+  --s-open-bg:      var(--color-food-green-d);
+  --s-open-tx:      var(--color-food-green-h);
   --s-admin-bg:     color-mix(in srgb, var(--color-food-accent)  8%, white);
   --s-admin-tx:     color-mix(in srgb, var(--color-food-accent) 70%, black);
 
-  --s-closed-bg:    #f1f5f9; --s-closed-tx:    #475569;
+  --s-closed-bg:    #ffe4e6; --s-closed-tx:    #be123c;
   --s-pending-bg:   #fffbeb; --s-pending-tx:   #b45309;
   --s-approved-bg:  #dcfce7; --s-approved-tx:  #15803d;
   --s-rejected-bg:  #ffe4e6; --s-rejected-tx:  #be123c;
@@ -108,12 +108,11 @@
 }
 
 [data-theme='dark'] {
-  --s-open-bg:      color-mix(in srgb, var(--color-food-accent) 20%, black);
-  --s-open-tx:      color-mix(in srgb, var(--color-food-accent) 70%, white);
+  --s-open-bg:      #052e16; --s-open-tx:      #4ade80;
   --s-admin-bg:     color-mix(in srgb, var(--color-food-accent) 15%, black);
   --s-admin-tx:     color-mix(in srgb, var(--color-food-accent) 65%, white);
 
-  --s-closed-bg:    #1e293b; --s-closed-tx:    #94a3b8;
+  --s-closed-bg:    #4c0519; --s-closed-tx:    #fda4af;
   --s-pending-bg:   #451a03; --s-pending-tx:   #fbbf24;
   --s-approved-bg:  #052e16; --s-approved-tx:  #4ade80;
   --s-rejected-bg:  #4c0519; --s-rejected-tx:  #fda4af;

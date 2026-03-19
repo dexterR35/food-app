@@ -1,100 +1,123 @@
-import { useState, useEffect } from 'react'
-import { Search, Download } from 'lucide-react'
-import { useBoard, useAllBoards } from '../board/hooks/useBoard'
-import { useAdminOrders } from './hooks/useOrders'
-import { adminOrderColumns } from './utils/orderColumns'
+import { useState, useMemo } from 'react'
+import { Search, Download, ClipboardList, DollarSign, Flame, Users } from 'lucide-react'
+import { useAllAdminOrders } from './hooks/useOrders'
+import { adminAllOrderColumns } from './utils/orderColumns'
 import DataTable from '../../components/ui/DataTable'
 import Button from '../../components/ui/Button'
-import Badge from '../../components/ui/Badge'
+import StatCard from '../../components/ui/StatCard'
 import { downloadCsv } from '../../utils/exportCsv'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useRealtime } from '../../hooks/useRealtime'
+import { cn } from '../../utils/cn'
+
+const RANGES = [
+  { label: 'Today',      key: 'today'  },
+  { label: 'This Week',  key: 'week'   },
+  { label: 'This Month', key: 'month'  },
+  { label: 'All Time',   key: 'all'    },
+]
+
+function startOf(range) {
+  const d = new Date()
+  if (range === 'today') { d.setHours(0, 0, 0, 0); return d }
+  if (range === 'week')  { d.setDate(d.getDate() - d.getDay()); d.setHours(0, 0, 0, 0); return d }
+  if (range === 'month') { return new Date(d.getFullYear(), d.getMonth(), 1) }
+  return null
+}
+
 
 export default function AdminOrdersPage() {
+  const [range, setRange]   = useState('today')
   const [filter, setFilter] = useState('')
-  const [selectedBoardId, setSelectedBoardId] = useState(null)
-  const { data: todayBoard } = useBoard()
-  const { data: allBoards = [], isLoading: boardsLoading } = useAllBoards()
-  const board = allBoards.find(b => b.id === selectedBoardId) ?? null
-  const { data: orders = [], isLoading } = useAdminOrders(selectedBoardId)
 
-  useEffect(() => {
-    if (selectedBoardId === null && allBoards.length > 0) {
-      setSelectedBoardId(allBoards[0].id)
-    }
-  }, [allBoards, selectedBoardId])
+  const { data: allOrders = [], isLoading } = useAllAdminOrders()
 
   useRealtime({
-    channel: `admin-orders-${selectedBoardId}`,
+    channel: 'admin-orders-all',
     table: 'orders',
-    filter: selectedBoardId ? `board_id=eq.${selectedBoardId}` : null,
-    queryKeys: [['orders', selectedBoardId], ['dashboard-stats']],
+    queryKeys: [['orders', 'all'], ['dashboard-stats']],
   })
 
-  if (boardsLoading) return <LoadingSpinner />
+  const rangeFiltered = useMemo(() => {
+    const from = startOf(range)
+    if (!from) return allOrders
+    return allOrders.filter(o => o.submitted_at && new Date(o.submitted_at) >= from)
+  }, [allOrders, range])
 
-  const totalRevenue = orders.reduce((s, o) => s + Number(o.total_price), 0)
-  const totalCalories = orders.reduce((s, o) => s + o.total_calories, 0)
+  const filtered = useMemo(() => {
+    if (!filter) return rangeFiltered
+    const q = filter.toLowerCase()
+    return rangeFiltered.filter(o =>
+      o.users?.username?.toLowerCase().includes(q) ||
+      o.users?.department?.toLowerCase().includes(q) ||
+      o.boards?.date?.includes(q)
+    )
+  }, [rangeFiltered, filter])
+
+  const totalRevenue  = filtered.reduce((s, o) => s + Number(o.total_price), 0)
+  const totalCalories = filtered.reduce((s, o) => s + o.total_calories, 0)
+  const uniqueUsers   = new Set(filtered.map(o => o.user_id)).size
+
+  if (isLoading) return <LoadingSpinner />
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-food-text">All Orders</h1>
-          {board && <Badge variant={board.status}>{board.status}</Badge>}
+
+      {/* Header */}
+      <h1 className="text-2xl font-bold text-food-text">All Orders</h1>
+
+      {/* Toolbar */}
+      <div className="flex items-center gap-3">
+        {/* Left — search */}
+        <div className="relative w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-food-text-m" />
+          <input
+            className="w-full bg-food-elevated border border-food-border rounded-xl pl-9 pr-3 py-2 text-food-text text-sm placeholder:text-food-text-m outline-none focus:border-food-accent transition-colors"
+            placeholder="Filter by user, department or date…"
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+          />
         </div>
-        <div className="flex items-center gap-3">
-          <select
-            className="bg-food-elevated border border-food-border rounded-lg px-3 py-2 text-food-text text-sm outline-none focus:border-food-accent"
-            value={selectedBoardId ?? ''}
-            onChange={e => setSelectedBoardId(e.target.value)}
-          >
-            {allBoards.map(b => (
-              <option key={b.id} value={b.id}>
-                {b.date}{b.id === todayBoard?.id ? ' (today)' : ''}
-              </option>
+
+        {/* Right — range tabs + export */}
+        <div className="ml-auto flex items-center gap-3">
+          <div className="flex bg-food-elevated border border-food-border rounded-xl p-1 gap-1">
+            {RANGES.map(r => (
+              <button
+                key={r.key}
+                onClick={() => setRange(r.key)}
+                className={cn(
+                  'px-4 py-2 rounded-lg text-sm font-semibold transition-colors',
+                  range === r.key
+                    ? 'bg-food-accent text-white shadow-sm'
+                    : 'text-food-text-s hover:text-food-text'
+                )}
+              >
+                {r.label}
+              </button>
             ))}
-          </select>
-          <Button onClick={() => downloadCsv(orders, board?.date ?? 'export')} disabled={!orders.length}>
+          </div>
+          <Button onClick={() => downloadCsv(filtered, `orders-${range}`)} disabled={!filtered.length}>
             <Download className="w-4 h-4 mr-1 inline" />Export CSV
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-food-card border border-food-border rounded-xl p-5">
-          <div className="text-food-text-m text-xs font-medium mb-1">Total Orders</div>
-          <div className="text-2xl font-semibold text-food-text">{orders.length}</div>
-        </div>
-        <div className="bg-food-card border border-food-border rounded-xl p-5">
-          <div className="text-food-text-m text-xs font-medium mb-1">Total Revenue</div>
-          <div className="text-2xl font-semibold text-food-accent">{totalRevenue.toFixed(2)} RON</div>
-        </div>
-        <div className="bg-food-card border border-food-border rounded-xl p-5">
-          <div className="text-food-text-m text-xs font-medium mb-1">Total Calories</div>
-          <div className="text-2xl font-semibold text-food-text">{totalCalories} kcal</div>
-        </div>
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard label="Orders"       value={filtered.length}                  icon={ClipboardList} iconColor="accent"  sublabel="total" />
+        <StatCard label="Revenue"      value={`${totalRevenue.toFixed(2)} RON`} icon={DollarSign}   iconColor="green"   sublabel="collected" />
+        <StatCard label="Calories"     value={`${totalCalories} kcal`}          icon={Flame}        iconColor="orange"  sublabel="ordered" />
+        <StatCard label="Unique Users" value={uniqueUsers}                       icon={Users}        iconColor="accent"  sublabel="people" />
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-food-text-m" />
-        <input
-          className="w-full bg-food-elevated border border-food-border rounded-lg pl-9 pr-3 py-2 text-food-text text-sm placeholder:text-food-text-m outline-none focus:border-food-accent"
-          placeholder="Filter by username or department…"
-          value={filter}
-          onChange={e => setFilter(e.target.value)}
-        />
-      </div>
-
+      {/* Table */}
       <DataTable
-        columns={adminOrderColumns}
-        data={orders.filter(o =>
-          !filter ||
-          o.users?.username?.toLowerCase().includes(filter.toLowerCase()) ||
-          o.users?.department?.toLowerCase().includes(filter.toLowerCase())
-        )}
-        emptyTitle="No orders yet"
-        emptyDescription="Orders will appear here in real-time when users submit."
+        columns={adminAllOrderColumns}
+        data={filtered}
+        loading={isLoading}
+        emptyTitle="No orders"
+        emptyDescription={`No orders found for the selected period.`}
       />
     </div>
   )

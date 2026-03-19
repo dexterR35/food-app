@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Toaster } from 'sonner'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import AppRouter from './app/router'
@@ -16,6 +17,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <ThemeProvider>
         <AuthProvider>
           <AppRouter />
+          <Toaster
+            position="top-center"
+            richColors
+            toastOptions={{ duration: 3000 }}
+          />
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

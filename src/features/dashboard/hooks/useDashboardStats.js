@@ -9,16 +9,38 @@ export function useDashboardStats(boardId) {
     queryKey: ['dashboard-stats', 'admin', boardId],
     enabled: isAdmin && !!boardId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Today's board stats
+      const { data: todayData, error: e1 } = await supabase
         .from('orders')
-        .select('total_price, total_calories, status, user_id')
+        .select('total_price, total_calories, user_id')
         .eq('board_id', boardId)
         .neq('status', 'cancelled')
-      if (error) throw error
+      if (e1) throw e1
+
+      // All-time totals
+      const { data: allData, error: e2 } = await supabase
+        .from('orders')
+        .select('total_price, total_calories, board_id, user_id')
+        .neq('status', 'cancelled')
+      if (e2) throw e2
+
+      const uniqueBoards    = new Set(allData.map(o => o.board_id)).size
+      const uniqueAllUsers  = new Set(allData.map(o => o.user_id)).size
+      const allTimeRevenue  = allData.reduce((s, o) => s + Number(o.total_price), 0)
+      const allTimeOrders   = allData.length
+      const allTimeCalories = allData.reduce((s, o) => s + o.total_calories, 0)
+
       return {
-        totalOrders: data.length,
-        totalRevenue: data.reduce((s, o) => s + Number(o.total_price), 0),
-        totalCalories: data.reduce((s, o) => s + o.total_calories, 0),
+        totalOrders:     todayData.length,
+        totalRevenue:    todayData.reduce((s, o) => s + Number(o.total_price), 0),
+        totalCalories:   todayData.reduce((s, o) => s + o.total_calories, 0),
+        uniqueUsers:     new Set(todayData.map(o => o.user_id)).size,
+        allTimeRevenue,
+        allTimeOrders,
+        allTimeCalories,
+        allTimeAvgOrder: allTimeOrders ? +(allTimeRevenue / allTimeOrders).toFixed(2) : 0,
+        uniqueAllUsers,
+        totalBoards:     uniqueBoards,
       }
     },
   })
@@ -27,18 +49,37 @@ export function useDashboardStats(boardId) {
     queryKey: ['dashboard-stats', 'user', boardId, profile?.id],
     enabled: !isAdmin && !!boardId && !!profile?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Today's order
+      const { data: today, error: e1 } = await supabase
         .from('orders')
         .select('total_price, total_calories, order_items(quantity)')
         .eq('board_id', boardId)
         .eq('user_id', profile.id)
         .neq('status', 'cancelled')
         .maybeSingle()
-      if (error) throw error
+      if (e1) throw e1
+
+      // All-time user stats
+      const { data: all, error: e2 } = await supabase
+        .from('orders')
+        .select('total_price, total_calories')
+        .eq('user_id', profile.id)
+        .neq('status', 'cancelled')
+      if (e2) throw e2
+
+      const allTimeSpend    = all.reduce((s, o) => s + Number(o.total_price), 0)
+      const allTimeOrders   = all.length
+      const allTimeCalories = all.reduce((s, o) => s + o.total_calories, 0)
+
       return {
-        myItems: data?.order_items?.reduce((s, i) => s + i.quantity, 0) ?? 0,
-        mySpend: data ? Number(data.total_price) : 0,
-        myCalories: data?.total_calories ?? 0,
+        myItems:          today?.order_items?.reduce((s, i) => s + i.quantity, 0) ?? 0,
+        mySpend:          today ? Number(today.total_price) : 0,
+        myCalories:       today?.total_calories ?? 0,
+        allTimeSpend,
+        allTimeOrders,
+        allTimeCalories,
+        allTimeAvgSpend:  allTimeOrders ? +(allTimeSpend    / allTimeOrders).toFixed(2) : 0,
+        allTimeAvgCal:    allTimeOrders ? Math.round(allTimeCalories / allTimeOrders)   : 0,
       }
     },
   })

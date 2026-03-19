@@ -19,6 +19,21 @@ export function useAdminOrders(boardId) {
   })
 }
 
+export function useAllAdminOrders() {
+  return useQuery({
+    queryKey: ['orders', 'all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, boards(date, title, status), users(username, nickname, department, avatar_url), order_items(*, food_items(name, category))')
+        .neq('status', 'cancelled')
+        .order('submitted_at', { ascending: false })
+      if (error) throw error
+      return data
+    },
+  })
+}
+
 export function useMyOrders() {
   const { profile } = useAuth()
   return useQuery({
@@ -27,10 +42,10 @@ export function useMyOrders() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*, boards(date, title), order_items(*, food_items(name))')
+        .select('*, boards(date, title, status), order_items(*, food_items(name, image_url))')
         .eq('user_id', profile.id)
-        .order('created_at', { ascending: false })
-        .limit(50)
+        .neq('status', 'cancelled')
+        .order('submitted_at', { ascending: false })
       if (error) throw error
       return data
     },

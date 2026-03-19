@@ -1,15 +1,18 @@
 import { Plus, Flame, Check } from 'lucide-react'
+import { useDebouncedAction } from '../../../hooks/useDebouncedAction'
 
-export default function FoodCard({ item, onAdd, inCart }) {
+export default function FoodCard({ item, onSelect, quantityInCart = 0 }) {
+  const inCart = quantityInCart > 0
+  const handleSelectDebounced = useDebouncedAction(() => onSelect(item), 250)
+
   return (
     <div
-      className={`group relative bg-food-card rounded-2xl overflow-hidden cursor-pointer select-none
+      className={`group relative bg-food-card rounded-2xl overflow-hidden select-none
         transition-all duration-200 hover:-translate-y-1 hover:shadow-lg
         ${inCart
           ? 'ring-2 ring-food-accent shadow-glow'
           : 'border border-food-border hover:border-food-accent/60'
         }`}
-      onClick={() => onAdd(item)}
     >
       {/* ── Image ─────────────────────────────────────── */}
       <div className="relative h-44 bg-food-elevated overflow-hidden">
@@ -52,6 +55,11 @@ export default function FoodCard({ item, onAdd, inCart }) {
       {/* ── Body ──────────────────────────────────────── */}
       <div className="p-3.5">
         <h3 className="text-food-text font-bold text-sm leading-snug line-clamp-1">{item.name}</h3>
+        {Array.isArray(item.menu_parts) && item.menu_parts.length > 0 && (
+          <p className="text-food-text-m text-[11px] mt-0.5 line-clamp-1">
+            {item.menu_parts.join(' + ')}
+          </p>
+        )}
         {item.description && (
           <p className="text-food-text-m text-xs mt-0.5 line-clamp-1">{item.description}</p>
         )}
@@ -65,7 +73,7 @@ export default function FoodCard({ item, onAdd, inCart }) {
 
           {/* Add button */}
           <button
-            onClick={(e) => { e.stopPropagation(); onAdd(item) }}
+            onClick={(e) => { e.stopPropagation(); handleSelectDebounced() }}
             className={`shrink-0 flex items-center gap-1.5 px-3 h-8 rounded-xl text-xs font-bold
               transition-all duration-150 active:scale-95
               ${inCart
@@ -74,7 +82,7 @@ export default function FoodCard({ item, onAdd, inCart }) {
               }`}
           >
             <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-            {inCart ? 'More' : 'Add'}
+            {inCart ? `${quantityInCart} (More)` : 'Add'}
           </button>
         </div>
       </div>

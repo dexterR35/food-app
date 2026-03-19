@@ -9,6 +9,17 @@ import Badge from '../../components/ui/Badge'
 
 const columns = (onEdit, onToggle) => [
   { header: 'Name', accessorKey: 'name' },
+  {
+    header: 'Menu',
+    id: 'menu_parts',
+    cell: ({ row }) => (
+      <span className="text-food-text-m text-xs">
+        {Array.isArray(row.original.menu_parts) && row.original.menu_parts.length
+          ? row.original.menu_parts.join(' + ')
+          : '—'}
+      </span>
+    ),
+  },
   { header: 'Category', accessorKey: 'category', cell: ({ getValue }) => <Badge variant="user">{getValue()}</Badge> },
   { header: 'Price', accessorKey: 'price', cell: ({ getValue }) => `${Number(getValue()).toFixed(2)} RON` },
   { header: 'Calories', accessorKey: 'calories', cell: ({ getValue }) => `${getValue()} kcal` },
@@ -29,6 +40,7 @@ const columns = (onEdit, onToggle) => [
 
 export default function FoodCatalogPage() {
   const [editing, setEditing] = useState(null) // null=closed, {}=new, item=edit
+  const [toggleCandidate, setToggleCandidate] = useState(null)
   const { data = [], isLoading } = useAllFoodItems()
   const save = useSaveFoodItem()
   const toggle = useToggleFoodItem()
@@ -38,15 +50,68 @@ export default function FoodCatalogPage() {
     setEditing(null)
   }
 
+  async function handleConfirmToggle() {
+    if (!toggleCandidate?.id || toggle.isPending) return
+    await toggle.mutateAsync({ id: toggleCandidate.id, is_active: toggleCandidate.nextActive })
+    setToggleCandidate(null)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-food-text">Food Catalog</h1>
         <Button onClick={() => setEditing({})}><Plus className="w-4 h-4 mr-1 inline" />Add Item</Button>
       </div>
-      <DataTable columns={columns(setEditing, toggle.mutate)} data={data} loading={isLoading} emptyTitle="No food items" emptyDescription="Add your first item." />
+      <DataTable
+        columns={columns(setEditing, ({ id, is_active }) => {
+          const item = data.find((d) => d.id === id)
+          setToggleCandidate({
+            id,
+            name: item?.name ?? 'this item',
+            nextActive: is_active,
+          })
+        })}
+        data={data}
+        loading={isLoading}
+        emptyTitle="No food items"
+        emptyDescription="Add your first item."
+      />
       <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? 'Edit Item' : 'New Item'} size="lg">
         <FoodForm item={editing?.id ? editing : null} onSave={handleSave} onCancel={() => setEditing(null)} saving={save.isPending} />
+      </Modal>
+
+      <Modal
+        open={!!toggleCandidate}
+        onClose={() => !toggle.isPending && setToggleCandidate(null)}
+        title={toggleCandidate?.nextActive ? 'Activate item?' : 'Deactivate item?'}
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="rounded-xl border border-food-border bg-food-elevated p-3">
+            <p className="text-food-text text-sm font-semibold">
+              {toggleCandidate?.nextActive ? 'Confirmation' : 'Warning'}
+            </p>
+            <p className="mt-1 text-food-text-m text-xs">
+              {toggleCandidate?.nextActive
+                ? <>This will make <span className="font-semibold text-food-text">{toggleCandidate?.name}</span> available on the board.</>
+                : <>This will hide <span className="font-semibold text-food-text">{toggleCandidate?.name}</span> from new orders.</>}
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setToggleCandidate(null)} disabled={toggle.isPending}>
+              Cancel
+            </Button>
+            <Button
+              variant={toggleCandidate?.nextActive ? 'primary' : 'danger'}
+              onClick={handleConfirmToggle}
+              disabled={toggle.isPending}
+            >
+              {toggle.isPending
+                ? 'Saving…'
+                : toggleCandidate?.nextActive ? 'Yes, activate' : 'Yes, deactivate'}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   )
