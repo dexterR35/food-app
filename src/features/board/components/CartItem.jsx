@@ -10,15 +10,15 @@ export default function CartItem({ item, onUpdateQty, onRemove }) {
         </p>
       </div>
       <div className="flex items-center gap-1">
-        <button onClick={() => onUpdateQty(item.food_item_id, item.quantity - 1)} className="w-6 h-6 rounded bg-food-elevated text-food-text-s flex items-center justify-center hover:bg-food-border transition-colors">
+        <button onClick={() => onUpdateQty(item.food_item_id, item.quantity - 1)} className="w-6 h-6 rounded bg-food-elevated text-food-text-s flex items-center justify-center hover:bg-food-border">
           <Minus className="w-3 h-3" />
         </button>
         <span className="text-food-text text-sm w-6 text-center">{item.quantity}</span>
-        <button onClick={() => onUpdateQty(item.food_item_id, item.quantity + 1)} className="w-6 h-6 rounded bg-food-elevated text-food-text-s flex items-center justify-center hover:bg-food-border transition-colors">
+        <button onClick={() => onUpdateQty(item.food_item_id, item.quantity + 1)} className="w-6 h-6 rounded bg-food-elevated text-food-text-s flex items-center justify-center hover:bg-food-border">
           <Plus className="w-3 h-3" />
         </button>
       </div>
-      <button onClick={() => onRemove(item.food_item_id)} className="text-red-500 hover:text-red-400 transition-colors">
+      <button onClick={() => onRemove(item.food_item_id)} className="text-food-crimson hover:text-food-crimson-h transition-colors">
         <Trash2 className="w-4 h-4" />
       </button>
     </div>
