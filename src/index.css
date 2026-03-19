@@ -1,47 +1,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-/* ─── Tailwind v4 theme registration ─────────────────────────────────────────
-   @theme defines CSS custom properties on :root AND tells Tailwind to generate
-   utility classes (bg-food-*, text-food-*, border-food-*, shadow-*, etc.).
-   [data-theme='dark'] below overrides the same property names at runtime.
+/* ─── Tailwind v4 theme ───────────────────────────────────────────────────────
+   ONE place to change the accent color — everything derives from it via
+   color-mix(). Borders, hover tints, shadows, badge colors all follow.
+
+   To retheme: change --color-food-accent in @theme (light) and
+   --color-food-accent in [data-theme='dark'] (slightly brighter variant).
    ─────────────────────────────────────────────────────────────────────────── */
 @theme {
-  /* Surfaces — light */
-  --color-food-bg:        #f0fdf4;
-  --color-food-card:      #ffffff;
-  --color-food-elevated:  #dcfce7;
-  --color-food-overlay:   rgba(0, 0, 0, 0.04);
+  /* Surfaces */
+  --color-food-bg:       #f8fafc;
+  --color-food-card:     #ffffff;
+  --color-food-elevated: #f1f5f9;
+  --color-food-overlay:  rgba(0, 0, 0, 0.04);
 
-  /* Borders — green-tinted */
-  --color-food-border:    #bbf7d0;
-  --color-food-border-h:  #4ade80;
+  /* ─── PRIMARY ACCENT — change this one value to retheme the app ─── */
+  --color-food-accent: #4f46e5;
 
-  /* Accent: Green — matches logo */
-  --color-food-accent:    #16a34a;
-  --color-food-accent-h:  #15803d;
-  --color-food-accent-d:  #dcfce7;
+  /* Derived from accent automatically */
+  --color-food-accent-h: color-mix(in srgb, var(--color-food-accent) 75%, black);
+  --color-food-accent-d: color-mix(in srgb, var(--color-food-accent) 11%, white);
+  --color-food-border:   color-mix(in srgb, var(--color-food-accent) 22%, white);
+  --color-food-border-h: color-mix(in srgb, var(--color-food-accent) 55%, white);
 
-  /* Crimson — vivid */
+  /* Crimson — fixed semantic color */
   --color-food-crimson:   #e11d48;
   --color-food-crimson-h: #be123c;
   --color-food-crimson-d: #ffe4e6;
 
-  /* Green (semantic — success badges, same family as accent) */
-  --color-food-green:     #16a34a;
-  --color-food-green-h:   #15803d;
-  --color-food-green-d:   #dcfce7;
+  /* Green — fixed semantic color */
+  --color-food-green:   #16a34a;
+  --color-food-green-h: #15803d;
+  --color-food-green-d: #dcfce7;
 
-  /* Text */
-  --color-food-text:      #052e16;
-  --color-food-text-s:    #166534;
-  --color-food-text-m:    #4ade80;
-  --color-food-text-inv:  #ffffff;
+  /* Text — neutral in light mode */
+  --color-food-text:     #0f172a;
+  --color-food-text-s:   #475569;
+  --color-food-text-m:   #94a3b8;
+  --color-food-text-inv: #ffffff;
 
-  /* Shadows */
-  --shadow-card: 0 2px 8px rgba(0,0,0,.06), 0 0 0 1px #bbf7d0;
-  --shadow-lg:   0 12px 40px rgba(0,0,0,.10), 0 0 0 1px #bbf7d0;
-  --shadow-glow: 0 0 28px rgba(22, 163, 74, 0.35);
+  /* Shadows — glow derived from accent */
+  --shadow-card: 0 2px 8px rgba(0,0,0,.06),  0 0 0 1px color-mix(in srgb, var(--color-food-accent) 22%, white);
+  --shadow-lg:   0 12px 40px rgba(0,0,0,.10), 0 0 0 1px color-mix(in srgb, var(--color-food-accent) 22%, white);
+  --shadow-glow: 0 0 24px color-mix(in srgb, var(--color-food-accent) 30%, transparent);
 
   /* Border radius */
   --radius-sm:   6px;
@@ -54,60 +56,69 @@
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 
-/* ─── Dark mode overrides ─────────────────────────────────────────────────── */
+/* ─── Dark mode — only override what changes ──────────────────────────────── */
 [data-theme='dark'] {
-  --color-food-bg:        #030d06;
-  --color-food-card:      #071209;
-  --color-food-elevated:  #0d1f10;
-  --color-food-overlay:   rgba(255, 255, 255, 0.03);
+  --color-food-bg:       #0f0f11;
+  --color-food-card:     #18181b;
+  --color-food-elevated: #27272a;
+  --color-food-overlay:  rgba(255, 255, 255, 0.04);
 
-  --color-food-border:    #14532d;
-  --color-food-border-h:  #16a34a;
+  /* ─── DARK ACCENT — brighter variant of the same hue ─── */
+  --color-food-accent: #6366f1;
 
-  --color-food-accent:    #22c55e;
-  --color-food-accent-h:  #16a34a;
-  --color-food-accent-d:  #052e16;
+  /* Derived from dark accent automatically */
+  --color-food-accent-h: color-mix(in srgb, var(--color-food-accent) 78%, black);
+  --color-food-accent-d: color-mix(in srgb, var(--color-food-accent) 18%, black);
+  --color-food-border:   color-mix(in srgb, var(--color-food-accent) 16%, black);
+  --color-food-border-h: color-mix(in srgb, var(--color-food-accent) 42%, black);
 
   --color-food-crimson:   #fb2c36;
   --color-food-crimson-h: #e11d48;
   --color-food-crimson-d: #4c0519;
 
-  --color-food-green:     #22c55e;
-  --color-food-green-h:   #16a34a;
-  --color-food-green-d:   #052e16;
+  --color-food-green:   #22c55e;
+  --color-food-green-h: #16a34a;
+  --color-food-green-d: #052e16;
 
-  --color-food-text:      #f0fdf4;
-  --color-food-text-s:    #bbf7d0;
-  --color-food-text-m:    #4ade80;
-  --color-food-text-inv:  #ffffff;
+  /* Text — neutral in dark mode, no indigo tint */
+  --color-food-text:     #fafafa;
+  --color-food-text-s:   #a1a1aa;
+  --color-food-text-m:   #71717a;
+  --color-food-text-inv: #ffffff;
 
-  --shadow-card: 0 2px 8px rgba(0,0,0,.5),  0 0 0 1px #14532d;
-  --shadow-lg:   0 12px 40px rgba(0,0,0,.6), 0 0 0 1px #14532d;
-  --shadow-glow: 0 0 32px rgba(34, 197, 94, 0.50);
+  --shadow-card: 0 2px 8px rgba(0,0,0,.5),  0 0 0 1px color-mix(in srgb, var(--color-food-accent) 16%, black);
+  --shadow-lg:   0 12px 40px rgba(0,0,0,.6), 0 0 0 1px color-mix(in srgb, var(--color-food-accent) 16%, black);
+  --shadow-glow: 0 0 28px color-mix(in srgb, var(--color-food-accent) 45%, transparent);
 }
 
-/* ─── Status badge CSS vars (used via inline styles in Badge.jsx) ─────────── */
+/* ─── Status badge vars — open/admin follow accent, rest are semantic ─────── */
 :root {
-  --s-open-bg:      #dcfce7; --s-open-tx:      #15803d;
+  --s-open-bg:      color-mix(in srgb, var(--color-food-accent) 10%, white);
+  --s-open-tx:      color-mix(in srgb, var(--color-food-accent) 75%, black);
+  --s-admin-bg:     color-mix(in srgb, var(--color-food-accent)  8%, white);
+  --s-admin-tx:     color-mix(in srgb, var(--color-food-accent) 70%, black);
+
   --s-closed-bg:    #f1f5f9; --s-closed-tx:    #475569;
   --s-pending-bg:   #fffbeb; --s-pending-tx:   #b45309;
   --s-approved-bg:  #dcfce7; --s-approved-tx:  #15803d;
   --s-rejected-bg:  #ffe4e6; --s-rejected-tx:  #be123c;
   --s-confirmed-bg: #eff6ff; --s-confirmed-tx: #1d4ed8;
   --s-cancelled-bg: #f3f4f6; --s-cancelled-tx: #6b7280;
-  --s-admin-bg:     #f0fdf4; --s-admin-tx:     #15803d;
   --s-user-bg:      #f1f5f9; --s-user-tx:      #475569;
 }
 
 [data-theme='dark'] {
-  --s-open-bg:      #052e16; --s-open-tx:      #4ade80;
+  --s-open-bg:      color-mix(in srgb, var(--color-food-accent) 20%, black);
+  --s-open-tx:      color-mix(in srgb, var(--color-food-accent) 70%, white);
+  --s-admin-bg:     color-mix(in srgb, var(--color-food-accent) 15%, black);
+  --s-admin-tx:     color-mix(in srgb, var(--color-food-accent) 65%, white);
+
   --s-closed-bg:    #1e293b; --s-closed-tx:    #94a3b8;
   --s-pending-bg:   #451a03; --s-pending-tx:   #fbbf24;
   --s-approved-bg:  #052e16; --s-approved-tx:  #4ade80;
   --s-rejected-bg:  #4c0519; --s-rejected-tx:  #fda4af;
   --s-confirmed-bg: #1e3a8a; --s-confirmed-tx: #93c5fd;
   --s-cancelled-bg: #111827; --s-cancelled-tx: #9ca3af;
-  --s-admin-bg:     #052e16; --s-admin-tx:     #86efac;
   --s-user-bg:      #1f2937; --s-user-tx:      #94a3b8;
 }
 

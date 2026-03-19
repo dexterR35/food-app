@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, CalendarDays, ShoppingBag,
   UtensilsCrossed, Users, UserCircle, ClipboardList,
-  Utensils, LogOut,
+  Utensils, LogOut, Scale,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { cn } from '../../utils/cn'
@@ -11,6 +11,7 @@ const userLinks = [
   { to: '/',          icon: LayoutDashboard, label: 'Dashboard'     },
   { to: '/board',     icon: CalendarDays,    label: "Today's Board" },
   { to: '/my-orders', icon: ShoppingBag,     label: 'My Orders'     },
+  { to: '/body',      icon: Scale,           label: 'Body Calc'     },
 ]
 const adminLinks = [
   { to: '/orders', icon: ClipboardList,   label: 'All Orders'   },

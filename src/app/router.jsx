@@ -14,6 +14,7 @@ import MyOrdersPage from '../features/orders/MyOrdersPage'
 import FoodCatalogPage from '../features/food/FoodCatalogPage'
 import AdminUsersPage from '../features/users/AdminUsersPage'
 import ProfilePage from '../features/users/ProfilePage'
+import BodyCalculatorPage from '../features/body/BodyCalculatorPage'
 
 function PublicRoute({ children }) {
   const { session, loading } = useAuth()
@@ -53,6 +54,7 @@ export default function AppRouter() {
           <Route path="/food" element={<AdminRoute><FoodCatalogPage /></AdminRoute>} />
           <Route path="/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/body" element={<BodyCalculatorPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

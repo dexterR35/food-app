@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useRealtime } from '../../hooks/useRealtime'
 import FoodGrid from './components/FoodGrid'
 import CartDrawer from './components/CartDrawer'
+import OrderSuccessModal from './components/OrderSuccessModal'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
@@ -15,6 +16,7 @@ import EmptyState from '../../components/ui/EmptyState'
 export default function BoardPage() {
   const { isAdmin } = useAuth()
   const [cartOpen, setCartOpen] = useState(false)
+  const [successOpen, setSuccessOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState('All')
 
   const { data: board, isLoading: boardLoading } = useBoard()
@@ -53,6 +55,7 @@ export default function BoardPage() {
       existingOrderId: existingOrder?.id,
     })
     setCartOpen(false)
+    setSuccessOpen(true)
   }
 
   if (boardLoading || foodLoading) return <LoadingSpinner />
@@ -163,6 +166,13 @@ export default function BoardPage() {
         onSubmit={handleSubmit}
         submitting={submitOrder.isPending}
         existingOrder={existingOrder}
+      />
+
+      <OrderSuccessModal
+        open={successOpen}
+        onClose={() => setSuccessOpen(false)}
+        order={existingOrder}
+        isUpdate={!!existingOrder?.id}
       />
     </div>
   )
