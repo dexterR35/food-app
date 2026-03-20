@@ -46,13 +46,13 @@ serve(async (req) => {
       })
     }
 
-    const { data: callerProfile, error: profileErr } = await adminClient
+    const { data: callerProfile } = await adminClient
       .from('users')
       .select('id, role, status')
       .eq('id', caller.id)
       .single()
 
-    if (profileErr || !callerProfile || callerProfile.role !== 'admin' || callerProfile.status !== 'approved') {
+    if (!callerProfile || callerProfile.role !== 'admin' || callerProfile.status !== 'approved') {
       return new Response(JSON.stringify({ error: 'Only approved admins can invite users.' }), {
         status: 403,
         headers: { ...CORS, 'Content-Type': 'application/json' },
@@ -94,14 +94,23 @@ serve(async (req) => {
       })
     }
 
-    // Only store the invitation — no auth user created yet
+    // Store invitation
     const { error: insertErr } = await adminClient
       .from('user_invitations')
       .insert({ email: normalizedEmail, role: 'user', invited_by: caller.id })
     if (insertErr) throw insertErr
 
-    const inviteLink = `${appUrl}/accept-invite?email=${encodeURIComponent(normalizedEmail)}`
+    // Send invitation email — auth user created with no password (trigger skips profile creation)
+    const { error: inviteErr } = await adminClient.auth.admin.inviteUserByEmail(
+      normalizedEmail,
+      { redirectTo: `${appUrl}/accept-invite` }
+    )
+    if (inviteErr) {
+      await adminClient.from('user_invitations').delete().eq('email', normalizedEmail)
+      throw inviteErr
+    }
 
+    const inviteLink = `${appUrl}/accept-invite?email=${encodeURIComponent(normalizedEmail)}`
     return new Response(JSON.stringify({ ok: true, inviteLink }), {
       headers: { ...CORS, 'Content-Type': 'application/json' },
     })

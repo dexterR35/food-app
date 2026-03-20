@@ -101,11 +101,11 @@ export default function AdminUsersPage() {
         <h3 className="text-food-text font-semibold text-sm">Invitations</h3>
         {invitationsLoading ? (
           <p className="text-food-text-m text-sm">Loading invitations…</p>
-        ) : !invitations.length ? (
-          <p className="text-food-text-m text-sm">No invitations yet.</p>
+        ) : !invitations.filter(i => !i.accepted_at).length ? (
+          <p className="text-food-text-m text-sm">No pending invitations.</p>
         ) : (
           <div className="space-y-2">
-            {invitations.map((inv) => (
+            {invitations.filter(i => !i.accepted_at).map((inv) => (
               <div key={inv.id} className="flex items-center justify-between bg-food-elevated border border-food-border rounded-lg px-3 py-2">
                 <div className="min-w-0">
                   <p className="text-food-text text-sm truncate">{inv.email}</p>

@@ -54,6 +54,7 @@ export function useInviteUser() {
       const { data, error } = await supabase.functions.invoke('invite-user', {
         body: { email: email.toLowerCase() },
       })
+      if (data?.error) throw new Error(data.error)
       if (error) throw error
       return data
     },

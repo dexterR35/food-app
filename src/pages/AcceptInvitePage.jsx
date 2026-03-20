@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { supabase } from '../lib/supabase'
@@ -6,7 +6,6 @@ import Button from '../components/ui/Button'
 import { sanitizeEmail } from '../utils/security'
 
 const schema = z.object({
-  email: z.string().email('Invalid email address.'),
   nickname: z.string().min(2, 'Nickname must be at least 2 characters.').max(40),
   password: z.string().min(8, 'Password must be at least 8 characters.').max(128),
   confirm: z.string(),
@@ -25,11 +24,18 @@ export default function AcceptInvitePage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Pick up email from Supabase session (when user arrives via invite email link)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) setEmail(session.user.email)
+    })
+  }, [])
+
   async function handleSubmit(e) {
     e.preventDefault()
     if (loading) return
 
-    const parsed = schema.safeParse({ email, nickname: nickname.trim(), password, confirm })
+    const parsed = schema.safeParse({ nickname: nickname.trim(), password, confirm })
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'Invalid input.')
       return
@@ -41,7 +47,7 @@ export default function AcceptInvitePage() {
     // Create the auth user with real password via edge function
     const { error: fnErr } = await supabase.functions.invoke('complete-signup', {
       body: {
-        email: parsed.data.email,
+        email,
         password: parsed.data.password,
         nickname: parsed.data.nickname,
       },
@@ -55,7 +61,7 @@ export default function AcceptInvitePage() {
 
     // Sign in with the credentials they just set
     const { error: signInErr } = await supabase.auth.signInWithPassword({
-      email: parsed.data.email,
+      email,
       password: parsed.data.password,
     })
 
@@ -75,12 +81,10 @@ export default function AcceptInvitePage() {
         <p className="text-food-text-m text-sm mb-6">You have been invited. Set your details to get started.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
-            className="w-full bg-food-elevated border border-food-border rounded-lg px-3 py-2 text-food-text text-sm placeholder:text-food-text-m outline-none focus:border-food-accent transition-colors"
+            className="w-full bg-food-elevated border border-food-border rounded-lg px-3 py-2 text-food-text-m text-sm outline-none cursor-not-allowed opacity-60"
             type="email"
-            placeholder="Your email"
             value={email}
-            onChange={e => setEmail(sanitizeEmail(e.target.value))}
-            required
+            disabled
           />
           <input
             className="w-full bg-food-elevated border border-food-border rounded-lg px-3 py-2 text-food-text text-sm placeholder:text-food-text-m outline-none focus:border-food-accent transition-colors"
