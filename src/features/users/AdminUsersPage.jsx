@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, X, Shield, User, MailPlus, Trash2 } from 'lucide-react'
+import { Check, X, MailPlus, Trash2, Copy } from 'lucide-react'
 import { z } from 'zod'
 import { useAllUsers, useUpdateUser, useInvitations, useInviteUser, useRevokeInvitation } from './hooks/useUsers'
 import DataTable from '../../components/ui/DataTable'
@@ -34,9 +34,7 @@ const buildColumns = (onUpdate) => [
           <button onClick={() => onUpdate({ id: u.id, status: 'approved' })} title="Approve" className="text-food-accent hover:text-food-accent-h"><Check className="w-4 h-4" /></button>
           <button onClick={() => onUpdate({ id: u.id, status: 'rejected' })} title="Reject" className="text-red-400 hover:text-red-300"><X className="w-4 h-4" /></button>
         </>}
-        <button onClick={() => onUpdate({ id: u.id, role: u.role === 'admin' ? 'user' : 'admin' })} title="Toggle role" className="text-food-text-s hover:text-food-accent">
-          {u.role === 'admin' ? <User className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
-        </button>
+
       </div>
     )
   },
@@ -121,13 +119,23 @@ export default function AdminUsersPage() {
                   </Badge>
                   {!inv.accepted_at && (
                     <button
-                      onClick={() => revokeInvite.mutate(inv.id)}
-                      className="text-red-400 hover:text-red-300"
-                      title="Revoke invite"
+                      onClick={() => {
+                        const link = `https://food-app-three-topaz.vercel.app/accept-invite?email=${encodeURIComponent(inv.email)}`
+                        navigator.clipboard.writeText(link)
+                      }}
+                      className="text-food-text-s hover:text-food-accent"
+                      title="Copy invite link"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Copy className="w-4 h-4" />
                     </button>
                   )}
+                  <button
+                    onClick={() => revokeInvite.mutate(inv.id)}
+                    className="text-red-400 hover:text-red-300"
+                    title="Delete invitation"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             ))}

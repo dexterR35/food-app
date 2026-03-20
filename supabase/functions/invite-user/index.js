@@ -38,11 +38,7 @@ serve(async (req) => {
     })
     const adminClient = createClient(supabaseUrl, serviceRoleKey)
 
-    const {
-      data: { user: caller },
-      error: authErr,
-    } = await callerClient.auth.getUser()
-
+    const { data: { user: caller }, error: authErr } = await callerClient.auth.getUser()
     if (authErr || !caller) {
       return new Response(JSON.stringify({ error: 'Unauthorized.' }), {
         status: 401,
@@ -98,23 +94,15 @@ serve(async (req) => {
       })
     }
 
+    // Only store the invitation — no auth user created yet
     const { error: insertErr } = await adminClient
       .from('user_invitations')
       .insert({ email: normalizedEmail, role: 'user', invited_by: caller.id })
     if (insertErr) throw insertErr
 
-    const inviteOptions = { redirectTo: `${appUrl}/accept-invite` }
-    const { error: inviteErr } = await adminClient.auth.admin.inviteUserByEmail(
-      normalizedEmail,
-      inviteOptions
-    )
+    const inviteLink = `${appUrl}/accept-invite?email=${encodeURIComponent(normalizedEmail)}`
 
-    if (inviteErr) {
-      await adminClient.from('user_invitations').delete().eq('email', normalizedEmail)
-      throw inviteErr
-    }
-
-    return new Response(JSON.stringify({ ok: true }), {
+    return new Response(JSON.stringify({ ok: true, inviteLink }), {
       headers: { ...CORS, 'Content-Type': 'application/json' },
     })
   } catch (e) {

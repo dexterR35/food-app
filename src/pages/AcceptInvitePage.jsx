@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { supabase } from '../lib/supabase'
 import Button from '../components/ui/Button'
+import { sanitizeEmail } from '../utils/security'
 
 const schema = z.object({
+  email: z.string().email('Invalid email address.'),
   nickname: z.string().min(2, 'Nickname must be at least 2 characters.').max(40),
   password: z.string().min(8, 'Password must be at least 8 characters.').max(128),
   confirm: z.string(),
@@ -15,28 +17,19 @@ const schema = z.object({
 
 export default function AcceptInvitePage() {
   const navigate = useNavigate()
-  const [session, setSession] = useState(undefined) // undefined = checking
+  const [searchParams] = useSearchParams()
+  const [email, setEmail] = useState(sanitizeEmail(searchParams.get('email') ?? ''))
   const [nickname, setNickname] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [done, setDone] = useState(false)
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setSession(session)
-    })
-    return () => subscription.unsubscribe()
-  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
     if (loading) return
-    const parsed = schema.safeParse({ nickname: nickname.trim(), password, confirm })
+
+    const parsed = schema.safeParse({ email, nickname: nickname.trim(), password, confirm })
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'Invalid input.')
       return
@@ -45,63 +38,50 @@ export default function AcceptInvitePage() {
     setLoading(true)
     setError('')
 
-    // Set the password on the auth user
-    const { error: pwErr } = await supabase.auth.updateUser({ password: parsed.data.password })
-    if (pwErr) {
-      setError(pwErr.message)
+    // Create the auth user with real password via edge function
+    const { error: fnErr } = await supabase.functions.invoke('complete-signup', {
+      body: {
+        email: parsed.data.email,
+        password: parsed.data.password,
+        nickname: parsed.data.nickname,
+      },
+    })
+
+    if (fnErr) {
+      setError(fnErr.message)
       setLoading(false)
       return
     }
 
-    // Save nickname to profile
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      await supabase.from('users').update({ nickname: parsed.data.nickname }).eq('id', user.id)
+    // Sign in with the credentials they just set
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email: parsed.data.email,
+      password: parsed.data.password,
+    })
+
+    if (signInErr) {
+      setError('Account created! Please go to login and sign in.')
+      setLoading(false)
+      return
     }
 
-    setDone(true)
-    setLoading(false)
-    setTimeout(() => navigate('/'), 1500)
-  }
-
-  // Still checking session
-  if (session === undefined) {
-    return (
-      <div className="min-h-screen bg-food-bg flex items-center justify-center">
-        <p className="text-food-text-m text-sm">Loading…</p>
-      </div>
-    )
-  }
-
-  // No session — invalid or expired link
-  if (!session) {
-    return (
-      <div className="min-h-screen bg-food-bg flex items-center justify-center">
-        <div className="bg-food-card border border-food-border rounded-xl p-8 w-full max-w-sm text-center">
-          <p className="text-food-text font-semibold text-lg mb-2">Invalid invite link</p>
-          <p className="text-food-text-m text-sm">This link has expired or already been used. Ask an admin to send a new invitation.</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (done) {
-    return (
-      <div className="min-h-screen bg-food-bg flex items-center justify-center">
-        <div className="bg-food-card border border-food-border rounded-xl p-8 w-full max-w-sm text-center">
-          <p className="text-food-text font-semibold text-lg mb-2">You're all set!</p>
-          <p className="text-food-text-m text-sm">Redirecting you to the app…</p>
-        </div>
-      </div>
-    )
+    navigate('/')
   }
 
   return (
     <div className="min-h-screen bg-food-bg flex items-center justify-center">
       <div className="bg-food-card border border-food-border rounded-xl p-8 w-full max-w-sm shadow-card">
-        <h1 className="text-2xl font-bold text-food-text mb-1">Welcome!</h1>
-        <p className="text-food-text-m text-sm mb-6">Set your nickname and password to finish.</p>
+        <h1 className="text-2xl font-bold text-food-text mb-1">Create your account</h1>
+        <p className="text-food-text-m text-sm mb-6">You have been invited. Set your details to get started.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            className="w-full bg-food-elevated border border-food-border rounded-lg px-3 py-2 text-food-text text-sm placeholder:text-food-text-m outline-none focus:border-food-accent transition-colors"
+            type="email"
+            placeholder="Your email"
+            value={email}
+            onChange={e => setEmail(sanitizeEmail(e.target.value))}
+            required
+          />
           <input
             className="w-full bg-food-elevated border border-food-border rounded-lg px-3 py-2 text-food-text text-sm placeholder:text-food-text-m outline-none focus:border-food-accent transition-colors"
             type="text"
@@ -130,7 +110,7 @@ export default function AcceptInvitePage() {
           />
           {error && <p className="text-red-400 text-xs">{error}</p>}
           <Button className="w-full" disabled={loading}>
-            {loading ? 'Saving…' : 'Complete account'}
+            {loading ? 'Creating account…' : 'Create account'}
           </Button>
         </form>
       </div>

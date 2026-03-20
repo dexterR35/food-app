@@ -19,7 +19,7 @@ export function useAllUsers() {
 export function useUpdateUser() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, ...updates }) => {
+    mutationFn: async ({ id, role: _role, ...updates }) => {
       const { error } = await supabase.from('users').update(updates).eq('id', id)
       if (error) throw error
     },
@@ -27,7 +27,6 @@ export function useUpdateUser() {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       if (vars.status === 'approved') toast.success('User approved!')
       else if (vars.status === 'rejected') toast.error('User rejected.')
-      else if (vars.role) toast.success(`Role changed to ${vars.role}.`)
       else toast.success('User updated.')
     },
     onError: (e) => toast.error(`Failed: ${e.message}`),
@@ -52,14 +51,20 @@ export function useInviteUser() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ email }) => {
-      const { error } = await supabase.functions.invoke('invite-user', {
+      const { data, error } = await supabase.functions.invoke('invite-user', {
         body: { email: email.toLowerCase() },
       })
       if (error) throw error
+      return data
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['user-invitations'] })
-      toast.success('Invitation sent.')
+      if (data?.inviteLink) {
+        navigator.clipboard.writeText(data.inviteLink).catch(() => {})
+        toast.success('Invite link copied to clipboard!')
+      } else {
+        toast.success('Invitation created.')
+      }
     },
     onError: (e) => toast.error(`Invite failed: ${e.message}`),
   })
