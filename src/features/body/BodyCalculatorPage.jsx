@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   Scale, Flame, Target, TrendingDown, TrendingUp, Minus,
   Sun, Coffee, Moon, Apple, Save, Beef, Wheat, Droplets,
-  Pencil, CheckCircle, Ruler, Heart, Zap, Clock,
+  Pencil, CheckCircle, Ruler, Heart, Zap, Clock, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -145,6 +145,20 @@ export default function BodyCalculatorPage() {
   // Has saved body data → start in read-only; no data → start in edit mode
   const hasData = !!(profile?.height_cm && profile?.weight_kg && profile?.age && profile?.gender)
   const [editing, setEditing] = useState(!hasData)
+  const [metricsCollapsed, setMetricsCollapsed] = useState(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? window.localStorage.getItem('foodapp_body_metrics_collapsed') : null
+      return raw === 'true'
+    } catch {
+      return false
+    }
+  })
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('foodapp_body_metrics_collapsed', String(metricsCollapsed))
+    } catch {}
+  }, [metricsCollapsed])
 
   const { data: board }      = useBoard()
   const { data: todayOrder } = useMyOrder(board?.id)
@@ -234,105 +248,132 @@ export default function BodyCalculatorPage() {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ══ LEFT SIDEBAR — form ══════════════════════════════════════════ */}
-        <aside className="w-80 shrink-0 border-r border-food-border bg-food-card flex flex-col overflow-y-auto">
+        <aside
+          className={`shrink-0 border-r border-food-border bg-food-card flex flex-col overflow-y-auto transition-[width] duration-200 ${metricsCollapsed ? 'w-20' : 'w-80'}`}
+        >
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1">
-            <div className="flex-1 p-5 space-y-6">
+            <div className={`flex-1 ${metricsCollapsed ? 'p-3 space-y-3' : 'p-5 space-y-6'}`}>
 
               {/* Section header with Edit toggle */}
-              <div className="flex items-center justify-between">
-                <p className="text-food-text font-bold text-sm">My Metrics</p>
-                {!editing && (
+              <div className="flex items-center justify-between gap-2">
+                {metricsCollapsed ? (
+                  <Scale className="w-5 h-5 text-food-accent shrink-0" />
+                ) : (
+                  <p className="text-food-text font-bold text-sm">My Metrics</p>
+                )}
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {!metricsCollapsed && !editing && (
+                    <button
+                      type="button"
+                      onClick={() => setEditing(true)}
+                      className="flex items-center gap-1.5 text-xs text-food-accent hover:text-food-accent-h font-semibold transition-colors"
+                    >
+                      <Pencil className="w-3 h-3" />Edit
+                    </button>
+                  )}
+
                   <button
                     type="button"
-                    onClick={() => setEditing(true)}
-                    className="flex items-center gap-1.5 text-xs text-food-accent hover:text-food-accent-h font-semibold transition-colors"
+                    onClick={() => setMetricsCollapsed(v => !v)}
+                    aria-label={metricsCollapsed ? 'Expand My Metrics' : 'Collapse My Metrics'}
+                    title={metricsCollapsed ? 'Expand My Metrics' : 'Collapse My Metrics'}
+                    className="w-8 h-8 rounded-xl border border-food-border bg-food-elevated hover:bg-food-card hover:border-food-border-h text-food-text-m flex items-center justify-center transition-colors"
                   >
-                    <Pencil className="w-3 h-3" />Edit
+                    {metricsCollapsed ? (
+                      <ChevronRight className="w-4 h-4 text-food-accent" />
+                    ) : (
+                      <ChevronLeft className="w-4 h-4 text-food-accent" />
+                    )}
                   </button>
-                )}
-              </div>
-
-              {/* ── Section 1: Essential ── */}
-              <div className="space-y-3">
-                <p className="text-food-text-m text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
-                  <Scale className="w-3 h-3" />Essential
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <Inp label="Height (cm)" type="number" placeholder="175" editing={editing} error={errors.height_cm} {...register('height_cm')} />
-                  <Inp label="Weight (kg)" type="number" step="0.1" placeholder="70" editing={editing} error={errors.weight_kg} {...register('weight_kg')} />
-                  <Inp label="Age" type="number" placeholder="30" editing={editing} error={errors.age} {...register('age')} />
-                  <Sel label="Gender" editing={editing} {...register('gender')}>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </Sel>
                 </div>
               </div>
 
-              {/* ── Section 2: Body measurements ── */}
-              <div className="space-y-3">
-                <p className="text-food-text-m text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
-                  <Ruler className="w-3 h-3" />Body Measurements
-                  <span className="text-food-text-m font-normal normal-case tracking-normal">— unlocks body fat %</span>
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <Inp label="Neck (cm)" type="number" step="0.1" placeholder="37" editing={editing} error={errors.neck_cm} {...register('neck_cm')} />
-                  <Inp label="Waist (cm)" type="number" step="0.1" placeholder="80" editing={editing} error={errors.waist_cm} {...register('waist_cm')} />
-                  <Inp label={`Hip (cm)${watchedGender === 'female' ? ' *' : ''}`} type="number" step="0.1" placeholder="95" editing={editing} error={errors.hip_cm} {...register('hip_cm')} />
-                  <Inp label="Wrist (cm)" type="number" step="0.1" placeholder="17" editing={editing} error={errors.wrist_cm} {...register('wrist_cm')} />
-                </div>
-                <p className="text-food-text-m text-[10px]">
-                  Measure at the narrowest point (waist), widest point (hip), and around the neck. Hip is required for females.
-                </p>
-              </div>
+              {!metricsCollapsed && (
+                <>
+                  {/* ── Section 1: Essential ── */}
+                  <div className="space-y-3">
+                    <p className="text-food-text-m text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                      <Scale className="w-3 h-3" />Essential
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Inp label="Height (cm)" type="number" placeholder="175" editing={editing} error={errors.height_cm} {...register('height_cm')} />
+                      <Inp label="Weight (kg)" type="number" step="0.1" placeholder="70" editing={editing} error={errors.weight_kg} {...register('weight_kg')} />
+                      <Inp label="Age" type="number" placeholder="30" editing={editing} error={errors.age} {...register('age')} />
+                      <Sel label="Gender" editing={editing} {...register('gender')}>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </Sel>
+                    </div>
+                  </div>
 
-              {/* ── Section 3: Lifestyle ── */}
-              <div className="space-y-3">
-                <p className="text-food-text-m text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
-                  <Zap className="w-3 h-3" />Lifestyle
-                </p>
-                <Sel label="Activity Level" editing={editing} {...register('activity_level')}>
-                  {Object.entries(ACTIVITY_LABELS).map(([v, l]) => (
-                    <option key={v} value={v}>{l}</option>
-                  ))}
-                </Sel>
-              </div>
+                  {/* ── Section 2: Body measurements ── */}
+                  <div className="space-y-3">
+                    <p className="text-food-text-m text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                      <Ruler className="w-3 h-3" />Body Measurements
+                      <span className="text-food-text-m font-normal normal-case tracking-normal">— unlocks body fat %</span>
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Inp label="Neck (cm)" type="number" step="0.1" placeholder="37" editing={editing} error={errors.neck_cm} {...register('neck_cm')} />
+                      <Inp label="Waist (cm)" type="number" step="0.1" placeholder="80" editing={editing} error={errors.waist_cm} {...register('waist_cm')} />
+                      <Inp label={`Hip (cm)${watchedGender === 'female' ? ' *' : ''}`} type="number" step="0.1" placeholder="95" editing={editing} error={errors.hip_cm} {...register('hip_cm')} />
+                      <Inp label="Wrist (cm)" type="number" step="0.1" placeholder="17" editing={editing} error={errors.wrist_cm} {...register('wrist_cm')} />
+                    </div>
+                    <p className="text-food-text-m text-[10px]">
+                      Measure at the narrowest point (waist), widest point (hip), and around the neck. Hip is required for females.
+                    </p>
+                  </div>
 
-              {/* ── Section 4: Goal ── */}
-              <div className="space-y-3">
-                <p className="text-food-text-m text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
-                  <Target className="w-3 h-3" />Goal
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(GOAL_INFO).map(([val, info]) => {
-                    const isSelected = watchedGoal === val
-                    return (
-                      <label
-                        key={val}
-                        className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-colors text-center ${
-                          !editing ? 'cursor-default opacity-70' : 'cursor-pointer'
-                        } ${isSelected
-                            ? 'border-food-accent bg-food-accent-d text-food-accent'
-                            : 'border-food-border text-food-text-s ' + (editing ? 'hover:border-food-border-h' : '')
-                        }`}
-                      >
-                        <input type="radio" value={val} {...register('goal')} disabled={!editing} className="sr-only" />
-                        <info.Icon className="w-4 h-4" />
-                        <span className="text-[10px] font-bold leading-none">{info.label.split(' ')[0]}</span>
-                      </label>
-                    )
-                  })}
-                </div>
-                <div className="flex items-center gap-2 bg-food-elevated rounded-lg px-3 py-2 text-[11px] text-food-text-m">
-                  <goalInfo.Icon className={`w-3 h-3 ${goalInfo.color} shrink-0`} />
-                  <span>{goalInfo.adj} · {goalInfo.rate}</span>
-                </div>
-              </div>
+                  {/* ── Section 3: Lifestyle ── */}
+                  <div className="space-y-3">
+                    <p className="text-food-text-m text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                      <Zap className="w-3 h-3" />Lifestyle
+                    </p>
+                    <Sel label="Activity Level" editing={editing} {...register('activity_level')}>
+                      {Object.entries(ACTIVITY_LABELS).map(([v, l]) => (
+                        <option key={v} value={v}>{l}</option>
+                      ))}
+                    </Sel>
+                  </div>
+
+                  {/* ── Section 4: Goal ── */}
+                  <div className="space-y-3">
+                    <p className="text-food-text-m text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                      <Target className="w-3 h-3" />Goal
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {Object.entries(GOAL_INFO).map(([val, info]) => {
+                        const isSelected = watchedGoal === val
+                        return (
+                          <label
+                            key={val}
+                            className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-colors text-center ${
+                              !editing ? 'cursor-default opacity-70' : 'cursor-pointer'
+                            } ${isSelected
+                                ? 'border-food-accent bg-food-accent-d text-food-accent'
+                                : 'border-food-border text-food-text-s ' + (editing ? 'hover:border-food-border-h' : '')
+                            }`}
+                          >
+                            <input type="radio" value={val} {...register('goal')} disabled={!editing} className="sr-only" />
+                            <info.Icon className="w-4 h-4" />
+                            <span className="text-[10px] font-bold leading-none">{info.label.split(' ')[0]}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                    <div className="flex items-center gap-2 bg-food-elevated rounded-lg px-3 py-2 text-[11px] text-food-text-m">
+                      <goalInfo.Icon className={`w-3 h-3 ${goalInfo.color} shrink-0`} />
+                      <span>{goalInfo.adj} · {goalInfo.rate}</span>
+                    </div>
+                  </div>
+                </>
+              )}
 
             </div>
 
             {/* Save button — pinned at bottom of sidebar */}
-            {editing && (
+            {editing && !metricsCollapsed && (
               <div className="p-5 border-t border-food-border shrink-0">
                 <Button type="submit" disabled={saving} className="w-full justify-center">
                   <Save className="w-3.5 h-3.5" />
@@ -353,29 +394,36 @@ export default function BodyCalculatorPage() {
 
           {/* Today's progress (always visible) */}
           {calc && (
-            <div className="p-5 border-t border-food-border space-y-3">
+            <div className={`${metricsCollapsed ? 'p-3 space-y-2' : 'p-5 space-y-3'} border-t border-food-border`}>
               <p className="text-food-text-m text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5 text-food-crimson" />Today's Progress
+                <Flame className="w-3.5 h-3.5 text-food-crimson" />
+                {metricsCollapsed ? 'Today' : "Today's Progress"}
               </p>
-              <div className="flex justify-between text-sm">
-                <span className="text-food-text-s">Consumed</span>
+
+              <div className={`flex justify-between ${metricsCollapsed ? 'text-xs' : 'text-sm'}`}>
+                <span className="text-food-text-s">{metricsCollapsed ? 'Used' : 'Consumed'}</span>
                 <span className="font-bold text-food-crimson">{consumed} kcal</span>
               </div>
-              <div className="h-2.5 bg-food-elevated rounded-full overflow-hidden">
+
+              <div className={`${metricsCollapsed ? 'h-2' : 'h-2.5'} bg-food-elevated rounded-full overflow-hidden`}>
                 <div
                   className={`h-full rounded-full transition-all ${consumedPct >= 100 ? 'bg-food-crimson' : 'bg-food-accent'}`}
                   style={{ width: `${consumedPct}%` }}
                 />
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-food-text-s">Remaining</span>
+
+              <div className={`flex justify-between ${metricsCollapsed ? 'text-xs' : 'text-sm'}`}>
+                <span className="text-food-text-s">{metricsCollapsed ? 'Left' : 'Remaining'}</span>
                 <span className={`font-bold ${remaining === 0 ? 'text-food-crimson' : 'text-food-accent'}`}>
                   {remaining} kcal
                 </span>
               </div>
-              <p className="text-[11px] text-food-text-m text-center">
-                Target: <strong>{calc.dailyTarget} kcal / day</strong>
-              </p>
+
+              {!metricsCollapsed && (
+                <p className="text-[11px] text-food-text-m text-center">
+                  Target: <strong>{calc.dailyTarget} kcal / day</strong>
+                </p>
+              )}
             </div>
           )}
         </aside>

@@ -97,10 +97,9 @@ export default function DashboardPage() {
           {/* Today */}
           <div>
             <p className="text-food-text-m text-xs font-bold uppercase tracking-widest mb-3">Today's Board</p>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <StatCard label="Orders Today"   value={stats.totalOrders}                       icon={ClipboardList} iconColor="accent"  sublabel={`${stats.uniqueUsers} users`} />
               <StatCard label="Revenue Today"  value={`${stats.totalRevenue?.toFixed(2)} RON`} icon={DollarSign}   iconColor="green"   sublabel="collected" />
-              <StatCard label="Calories Today" value={`${stats.totalCalories} kcal`}           icon={Flame}        iconColor="crimson" sublabel="ordered" />
               <StatCard label="Total Boards"   value={stats.totalBoards}                       icon={CalendarDays} iconColor="accent"  sublabel="days with orders" />
             </div>
           </div>
@@ -108,7 +107,7 @@ export default function DashboardPage() {
           {/* All-time */}
           <div>
             <p className="text-food-text-m text-xs font-bold uppercase tracking-widest mb-3">All Time</p>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
               <StatCard label="Total Orders"    value={stats.allTimeOrders}                       icon={TrendingUp}  iconColor="accent"  sublabel="across all boards" />
               <StatCard label="Total Revenue"   value={`${stats.allTimeRevenue?.toFixed(2)} RON`} icon={DollarSign}  iconColor="green"   sublabel="all boards" />
               <StatCard label="Avg Order Value" value={`${stats.allTimeAvgOrder} RON`}            icon={BarChart2}   iconColor="amber"   sublabel="per order" />
@@ -121,10 +120,9 @@ export default function DashboardPage() {
       {/* ── USER ── */}
       {!isAdmin && stats && (
         <>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <StatCard label="Items Today" value={stats.myItems}                      icon={ClipboardList} iconColor="accent"  sublabel="ordered today" />
             <StatCard label="Spent Today" value={`${stats.mySpend?.toFixed(2)} RON`} icon={DollarSign}   iconColor="green"   sublabel="today" />
-            <StatCard label="Calories"    value={`${stats.myCalories} kcal`}         icon={Flame}        iconColor="crimson" sublabel="consumed today" />
           </div>
 
           {/* Calorie progress */}
@@ -152,7 +150,7 @@ export default function DashboardPage() {
           {/* All-time user stats */}
           <div>
             <p className="text-food-text-m text-xs font-bold uppercase tracking-widest mb-3">All Time</p>
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <StatCard label="Total Orders"    value={stats.allTimeOrders}                     icon={ClipboardList} iconColor="accent"  sublabel="all boards" />
               <StatCard label="Total Spent"     value={`${stats.allTimeSpend?.toFixed(2)} RON`} icon={DollarSign}   iconColor="green"   sublabel="all time" />
               <StatCard label="Total Calories"  value={`${stats.allTimeCalories} kcal`}         icon={Flame}        iconColor="crimson" sublabel="all time" />
