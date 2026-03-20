@@ -19,7 +19,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    const appUrl = Deno.env.get('APP_URL')
+    const appUrl = Deno.env.get('APP_URL') || 'https://food-app-three-topaz.vercel.app'
 
     if (!supabaseUrl || !anonKey || !serviceRoleKey) {
       throw new Error('Missing Supabase env vars on edge function.')
@@ -103,7 +103,7 @@ serve(async (req) => {
       .insert({ email: normalizedEmail, role: 'user', invited_by: caller.id })
     if (insertErr) throw insertErr
 
-    const inviteOptions = appUrl ? { redirectTo: `${appUrl}/login` } : undefined
+    const inviteOptions = { redirectTo: `${appUrl}/accept-invite` }
     const { error: inviteErr } = await adminClient.auth.admin.inviteUserByEmail(
       normalizedEmail,
       inviteOptions

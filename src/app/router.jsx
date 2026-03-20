@@ -5,7 +5,6 @@ import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 // Pages (import lazily or directly — direct for now)
 import LoginPage from '../pages/LoginPage'
-import RegisterPage from '../pages/RegisterPage'
 import PendingPage from '../pages/PendingPage'
 import RejectedPage from '../pages/RejectedPage'
 import DashboardPage from '../features/dashboard/DashboardPage'
@@ -16,6 +15,7 @@ import AdminUsersPage from '../features/users/AdminUsersPage'
 import ProfilePage from '../features/users/ProfilePage'
 import BodyCalculatorPage from '../features/body/BodyCalculatorPage'
 import AIPage from '../features/ai/AIPage'
+import AcceptInvitePage from '../pages/AcceptInvitePage'
 
 function PublicRoute({ children }) {
   const { session, loading } = useAuth()
@@ -44,8 +44,8 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/accept-invite" element={<AcceptInvitePage />} />
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
         <Route path="/pending" element={<PendingPage />} />
         <Route path="/rejected" element={<RejectedPage />} />
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>

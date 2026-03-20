@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { z } from 'zod'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
@@ -50,9 +49,6 @@ export default function LoginPage() {
           {error && <p className="text-red-400 text-xs">{error}</p>}
           <Button className="w-full" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</Button>
         </form>
-        <p className="text-food-text-m text-sm text-center mt-4">
-          No account? <Link to="/register" className="text-food-accent hover:underline">Register</Link>
-        </p>
       </div>
     </div>
   )
